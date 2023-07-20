@@ -42,6 +42,15 @@ export class Color {
 		 */
 		this.alpha = alpha;
 	}
+
+	/**
+	 * Instancia uma nova cópia desta instância.
+	 * 
+	 * @returns {Color}
+	 */
+	clone() {
+		return new Color(this.red, this.green, this.blue, this.alpha);
+	}
 }
 
 //#endregion </color.js>
@@ -197,7 +206,7 @@ export class Bitmap {
 	 */
 	hline(x = 0, y = 0, size = 0, color = -1) {
 		for(let index = 0; index < size; index += 1) {
-			this.setPixel(x + index, y, color);
+			this.pixel(x + index, y, color);
 		}
 
 		return this;
@@ -215,40 +224,49 @@ export class Bitmap {
 	 */
 	vline(x = 0, y = 0, size = 0, color = -1) {
 		for(let index = 0; index < size; index += 1) {
-			this.setPixel(x, y + index, color);
+			this.pixel(x, y + index, color);
 		}
 
 		return this;
 	}
 
 	/**
-	 * Desenha um retângulo (apenas bordas).
+	 * Desenha um retângulo com linhas.
 	 * 
 	 * @param {number} x Posição X.
 	 * @param {number} y Posição Y.
 	 * @param {number} width Largura.
 	 * @param {number} height Altura.
-	 * @param {number} border Índice de cor (bordas).
-	 * @param {number} fill Índice de cor (preenchimento).
+	 * @param {number} color Índice de cor.
 	 * 
 	 * @returns {this}
 	 */
-	rect(x = 0, y = 0, width = 0, height = 0, border = -1, fill = -1) {
-		// Desenhar bordas...
-		this.hline(x            , y         , width     , border)
-				.hline(x            , y + height, width     , border)
-				.vline(x            , y + 1     , height - 1, border)
-				.vline(x + width - 1, y + 1     , height - 1, border);
-		
-		// Desenhar preenchimento...
-		for(let index = 1; index < height; index += 1) {
-			this.hline(x + 1, y + index, width - 2, fill);
-		}
-
-		return this;
+	rectb(x = 0, y = 0, width = 0, height = 0, color = -1) {
+		this.hline(x            , y         , width     , color)
+		this.hline(x            , y + height, width     , color)
+		this.vline(x            , y + 1     , height - 1, color)
+		this.vline(x + width - 1, y + 1     , height - 1, color);
 	}
 
 	/**
+	 * Desenha um retângulo preenchido.
+	 * 
+	 * @param {number} x Posição X.
+	 * @param {number} y Posição Y.
+	 * @param {number} width Largura.
+	 * @param {number} height Altura.
+	 * @param {number} color Índice de cor.
+	 * 
+	 * @returns {this}
+	 */
+	rectf(x = 0, y = 0, width = 0, height = 0, color = -1) {
+		for(let index = 0; index < height; index += 1) {
+			this.hline(x, y, width, color);
+		}
+	}
+
+	/**
+	 * Desenha uma imagem (parcial).
 	 * 
 	 * @param {Bitmap} bitmap Imagem.
 	 * @param {number} x Posição X.
@@ -258,7 +276,8 @@ export class Bitmap {
 	 * @param {number} width Largura do recorte.
 	 * @param {number} height Altura do recorte.
 	 * @param {number} mask Máscara de transparência.
-	 * @returns 
+	 * 
+	 * @returns {this}
 	 */
 	blitsub(bitmap, x = 0, y = 0, cutX = 0, cutY = 0, width = 0, height = 0, mask = -1) {
 		for(let bitmapY = 0; bitmapY < height; bitmapY += 1) {
@@ -275,7 +294,7 @@ export class Bitmap {
 	}
 
 	/**
-	 * Desenha um bitmap.
+	 * Desenha uma imagem (inteira).
 	 * 
 	 * @param {Bitmap} bitmap Imagem.
 	 * @param {number} x Posição X.
@@ -286,7 +305,6 @@ export class Bitmap {
 	 */
 	blit(bitmap, x = 0, y = 0, mask = -1) {
 		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, mask);
-
 		return this;
 	}
 
