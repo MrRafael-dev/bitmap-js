@@ -1,3 +1,19 @@
+/**
+ * @name bitmap-js
+ * @author MrRafael-dev
+ * @license MIT
+ * @version 0.0.1
+ * 
+ * @description
+ * Biblioteca de bitmap simples para JavaScript.
+ * 
+ * Esta biblioteca funciona como um elemento `<canvas>` simplificado. Possui
+ * suporte a importação/exportação de imagens de bitmap, e oferece algumas 
+ * funcionalidades básicas de desenho.
+ * 
+ * Apenas bitmaps no formato 8bpp são suportados.
+ */
+
 //#region <color.js>
 /**
  * @class Color
@@ -7,29 +23,29 @@
  */
 export class Color {
 	/** Canal de cor vermelho (*red*). */
-	public red: number;
+	public r: number;
 
 	/** Canal de cor verde (*green*). */
-	public green: number;
+	public g: number;
 
 	/** Canal de cor azul (*blue*). */
-	public blue: number;
+	public b: number;
 
 	/** Canal de transparência (*alpha*). */
-	public alpha: number;
+	public a: number;
 
 	/**
 	 * 
-	 * @param red Canal de cor vermelho (*red*).
-	 * @param green Canal de cor verde (*green*).
-	 * @param blue Canal de cor azul (*blue*).
-	 * @param alpha Canal de transparência (*alpha*).
+	 * @param r Canal de cor vermelho (*red*).
+	 * @param g Canal de cor verde (*green*).
+	 * @param b Canal de cor azul (*blue*).
+	 * @param a Canal de transparência (*alpha*).
 	 */
-	constructor(red: number = 0, green: number = 0, blue: number = 0, alpha: number = 0) {
-		this.red   = red;
-		this.green = green;
-		this.blue  = blue;
-		this.alpha = alpha;
+	constructor(r: number = 0, g: number = 0, b: number = 0, a: number = 0) {
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
 	}
 }
 
@@ -129,12 +145,12 @@ export class Bitmap {
 		for(let index: number = 0; index < 256; index += 1) {
 			const offset: number = 54 + (index * 4);
 
-			const blue : number = dataView.getUint8(offset + 0);
-			const green: number = dataView.getUint8(offset + 1);
-			const red  : number = dataView.getUint8(offset + 2);
-			const alpha: number = dataView.getUint8(offset + 3);
+			const b: number = dataView.getUint8(offset + 0);
+			const g: number = dataView.getUint8(offset + 1);
+			const r: number = dataView.getUint8(offset + 2);
+			const a: number = dataView.getUint8(offset + 3);
 
-			colors.push(new Color(red, green, blue, alpha));
+			colors.push(new Color(r, g, b, a));
 		}
 
 		return new Bitmap(width, height, colors, pixels.buffer);
@@ -148,7 +164,7 @@ export class Bitmap {
 	 * @param colors Paleta de cores da imagem (max: 256 cores).
 	 * @param pixels Dados de pixel da imagem.
 	 */
-	constructor(width: number = 0, height: number = 0, colors: Color[] = [], pixels: ArrayBuffer = new ArrayBuffer(0)) {
+	constructor(width: number, height: number, colors: Color[] = [], pixels: ArrayBuffer = new ArrayBuffer(0)) {
 		this.width  = width;
 		this.height = height;
 		this.colors = [];
@@ -175,7 +191,7 @@ export class Bitmap {
 	 * 
 	 * @returns {ArrayBuffer}
 	 */
-	public toData(): ArrayBuffer {
+	public toArrayBuffer(): ArrayBuffer {
 		// Tamanho do arquivo + bitmap + dados do bitmap.
 		const fileSize: number     = 1078 + this.pixels.byteLength;
 		const data    : Uint8Array = new Uint8Array(fileSize);
@@ -206,10 +222,10 @@ export class Bitmap {
 
 			// Escrever cores.
 			data.set([
-				color.blue, 
-				color.green, 
-				color.red, 
-				color.alpha,
+				color.b, 
+				color.g, 
+				color.r, 
+				color.a,
 			], offset);
 		}
 
@@ -266,7 +282,7 @@ export class Bitmap {
 	 * 
 	 * @returns {number}
 	 */
-	public getPixel(x: number = 0, y: number = 0): number {
+	public getPixel(x: number, y: number): number {
 		const offset: number = (this.width * y) + x;
 
 		if(this.isOffsetValid(offset)) {
@@ -287,7 +303,7 @@ export class Bitmap {
 	 * 
 	 * @returns {boolean}
 	 */
-	public setPixel(x: number = 0, y: number = 0, color: number = -1): boolean {
+	public setPixel(x: number, y: number, color: number): boolean {
 		const offset: number = (this.width * y) + x;
 
 		if(this.isOffsetValid(offset) && this.isColorValid(color)) {
@@ -307,7 +323,7 @@ export class Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public pixel(x: number = 0, y: number = 0, color: number = -1): this {
+	public pixel(x: number, y: number, color: number): this {
 		this.setPixel(x, y, color);
 		return this;
 	}
@@ -322,7 +338,7 @@ export class Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public hline(x: number = 0, y: number = 0, size: number = 0, color: number = -1): this {
+	public hline(x: number, y: number, size: number, color: number): this {
 		for(let index: number = 0; index < size; index += 1) {
 			this.pixel(x + index, y, color);
 		}
@@ -340,7 +356,7 @@ export class Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public vline(x: number = 0, y: number = 0, size: number = 0, color: number = -1): this {
+	public vline(x: number, y: number, size: number, color: number): this {
 		for(let index: number = 0; index < size; index += 1) {
 			this.pixel(x, y + index, color);
 		}
@@ -359,7 +375,7 @@ export class Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public rectb(x: number = 0, y: number = 0, width: number = 0, height: number = 0, color: number = -1): this {
+	public rectb(x: number, y: number, width: number, height: number, color: number): this {
 		this.hline(x            , y         , width     , color)
 		this.hline(x            , y + height, width     , color)
 		this.vline(x            , y + 1     , height - 1, color)
@@ -379,9 +395,33 @@ export class Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public rectf(x: number = 0, y: number = 0, width: number = 0, height: number = 0, color: number = -1): this {
+	public rectf(x: number, y: number, width: number, height: number, color: number): this {
 		for(let index: number = 0; index < height; index += 1) {
 			this.hline(x, y, width, color);
+		}
+
+		return this;
+	}
+
+	/**
+	 * Desenha um retângulo.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @param width Largura.
+	 * @param height Altura.
+	 * @param bcolor Índice de cor (bordas).
+	 * @param fcolor Índice de cor (preenchimento).
+	 * 
+	 * @returns {this}
+	 */
+	public rect(x: number, y: number, width: number, height: number, bcolor: number, fcolor: number): this {
+		if(this.isColorValid(bcolor)) {
+			this.rectb(x, y, width, height, bcolor);
+		}
+
+		if(this.isColorValid(fcolor)) {
+			this.rectf(x + 1, y + 1, width - 1, height - 1, fcolor);
 		}
 
 		return this;
@@ -398,16 +438,22 @@ export class Bitmap {
 	 * @param width Largura do recorte.
 	 * @param height Altura do recorte.
 	 * @param mask Máscara de transparência.
+	 * @param flipX Quando `true`, inverte o recorte horizontalmente.
+	 * @param flipY Quando `true`, inverte o recorte verticalmente.
 	 * 
 	 * @returns {this}
 	 */
-	public blitsub(bitmap: Bitmap, x: number = 0, y: number = 0, cutX: number = 0, cutY: number = 0, width: number = 0, height: number = 0, mask: number = -1): this {
+	public blitsub(bitmap: Bitmap, x: number, y: number, cutX: number, cutY: number, width: number, height: number, mask: number = -1, flipX: boolean = false, flipY: boolean = false): this {
 		for(let bitmapY: number = 0; bitmapY < height; bitmapY += 1) {
 			for(let bitmapX: number = 0; bitmapX < width; bitmapX += 1) {
 				const pixel: number = bitmap.getPixel(bitmapX + cutX, bitmapY + cutY);
 
 				if(pixel !== mask) {
-					this.setPixel(x + bitmapX, y + bitmapY, pixel);
+					this.setPixel(
+						flipX? (width  - 1) - (x + bitmapX): x + bitmapX, 
+						flipY? (height - 1) - (y + bitmapY): y + bitmapY,
+						pixel
+					);
 				}
 			}
 		}
@@ -422,11 +468,13 @@ export class Bitmap {
 	 * @param x Posição X.
 	 * @param y Posição Y.
 	 * @param mask Máscara de transparência.
+	 * @param flipX Quando `true`, inverte o recorte horizontalmente.
+	 * @param flipY Quando `true`, inverte o recorte verticalmente.
 	 * 
 	 * @returns {this}
 	 */
-	public blit(bitmap: Bitmap, x: number = 0, y: number = 0, mask: number = -1): this {
-		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, mask);
+	public blit(bitmap: Bitmap, x: number, y: number, mask: number = -1, flipX: boolean = false, flipY: boolean = false): this {
+		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, mask, flipX, flipY);
 		return this;
 	}
 }
