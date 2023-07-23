@@ -8,7 +8,6 @@
     "lib": ["ESNext"],
     
     "declaration": true,
-    "declarationMap": true,
     "sourceMap": true
   }
 }
