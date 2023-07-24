@@ -71,7 +71,7 @@ export class Bitmap {
 	public pixels: Uint8Array;
 
 	/**
-	 * Importa um {@link ArrayBuffer} para uma instância.
+	 * Importa dados de um arquivo de bitmap para uma instância.
 	 * 
 	 * O formato de bitmap suportado é muito específico:
 	 * - O cabeçalho deve possuir pelo menos 1078 bytes ou mais.
@@ -80,7 +80,7 @@ export class Bitmap {
 	 * 
 	 * @param data Dados.
 	 */
-	public static fromArrayBuffer(data: ArrayBuffer): Bitmap {
+	public static fromFileData(data: ArrayBuffer): Bitmap {
 		// Dados do bitmap.
 		const dataView: DataView = new DataView(data);
 
@@ -187,11 +187,11 @@ export class Bitmap {
 	}
 
 	/**
-	 * Exporta esta instância para um {@link ArrayBuffer}.
+	 * Exporta esta instância para dados de um arquivo de bitmap.
 	 * 
 	 * @returns {ArrayBuffer}
 	 */
-	public toArrayBuffer(): ArrayBuffer {
+	public toFileData(): ArrayBuffer {
 		// Tamanho do arquivo + bitmap + dados do bitmap.
 		const fileSize: number     = 1078 + this.pixels.byteLength;
 		const data    : Uint8Array = new Uint8Array(fileSize);
@@ -243,6 +243,39 @@ export class Bitmap {
 		}
 
 		return data.buffer;
+	}
+
+	/**
+	 * Exporta esta instância para um {@link Uint8ClampedArray}.
+	 * 
+	 * Esta array pode ser utilizada para exibir a imagem em 
+	 * um elemento `<canvas>`.
+	 * 
+	 * @param mask Máscara de transparência.
+	 * 
+	 * @returns {Uint8ClampedArray}
+	 */
+	public toImageData(mask: number = -1): Uint8ClampedArray {
+		// Dados de imagem, em formato 32bpp.
+		const data: Uint8ClampedArray = new Uint8ClampedArray(this.pixels.byteLength * 4);
+
+		// Percorrer pixels da imagem...
+		for(let index: number = 0; index < this.pixels.byteLength; index += 1) {
+			const pixel: number = this.pixels[index];
+
+			// Para ser considerado visível, um pixel deve ter um valor diferente da
+			// máscara de transparência e ser equivalente a um índice de cor válido:
+			if(pixel !== mask && this.isColorValid(pixel)) {
+				const color: Color = this.colors[index];
+
+				data[(index * 4) + 0] = color.r;
+				data[(index * 4) + 1] = color.g;
+				data[(index * 4) + 2] = color.b;
+				data[(index * 4) + 3] = color.a;
+			}
+		}
+
+		return data;
 	}
 
 	/**

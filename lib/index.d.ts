@@ -53,7 +53,7 @@ export declare class Bitmap {
     /** Dados de pixel da imagem. */
     pixels: Uint8Array;
     /**
-     * Importa um {@link ArrayBuffer} para uma instância.
+     * Importa dados de um arquivo de bitmap para uma instância.
      *
      * O formato de bitmap suportado é muito específico:
      * - O cabeçalho deve possuir pelo menos 1078 bytes ou mais.
@@ -62,7 +62,7 @@ export declare class Bitmap {
      *
      * @param data Dados.
      */
-    static fromArrayBuffer(data: ArrayBuffer): Bitmap;
+    static fromFileData(data: ArrayBuffer): Bitmap;
     /**
      * @constructor
      *
@@ -73,11 +73,22 @@ export declare class Bitmap {
      */
     constructor(width: number, height: number, colors?: Color[], pixels?: ArrayBuffer);
     /**
-     * Exporta esta instância para um {@link ArrayBuffer}.
+     * Exporta esta instância para dados de um arquivo de bitmap.
      *
      * @returns {ArrayBuffer}
      */
-    toArrayBuffer(): ArrayBuffer;
+    toFileData(): ArrayBuffer;
+    /**
+     * Exporta esta instância para um {@link Uint8ClampedArray}.
+     *
+     * Esta array pode ser utilizada para exibir a imagem em
+     * um elemento `<canvas>`.
+     *
+     * @param mask Máscara de transparência.
+     *
+     * @returns {Uint8ClampedArray}
+     */
+    toImageData(mask?: number): Uint8ClampedArray;
     /**
      * Verifica se o valor de offset de um pixel está dentro dos limites.
      *
