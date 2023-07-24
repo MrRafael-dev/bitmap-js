@@ -419,9 +419,9 @@ export class Bitmap {
 	 * @returns {this}
 	 */
 	public rectb(x: number, y: number, width: number, height: number, color: number): this {
-		this.hline(x            , y         , width     , color)
-		this.hline(x            , y + height, width     , color)
-		this.vline(x            , y + 1     , height - 1, color)
+		this.hline(x            , y         , width     , color);
+		this.hline(x            , y + height, width     , color);
+		this.vline(x            , y + 1     , height - 1, color);
 		this.vline(x + width - 1, y + 1     , height - 1, color);
 
 		return this;
