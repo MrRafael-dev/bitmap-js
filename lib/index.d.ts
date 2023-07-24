@@ -222,4 +222,3 @@ export declare class Bitmap {
      */
     blit(bitmap: Bitmap, x: number, y: number, mask?: number, flipX?: boolean, flipY?: boolean): this;
 }
-//# sourceMappingURL=index.d.ts.map

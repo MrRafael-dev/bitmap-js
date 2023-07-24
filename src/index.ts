@@ -339,6 +339,11 @@ export class Bitmap {
 	 * @returns {this}
 	 */
 	public hline(x: number, y: number, size: number, color: number): this {
+		if(size < 0) {
+			size = Math.abs(size);
+			x -= size;
+		}
+
 		for(let index: number = 0; index < size; index += 1) {
 			this.pixel(x + index, y, color);
 		}
@@ -357,6 +362,11 @@ export class Bitmap {
 	 * @returns {this}
 	 */
 	public vline(x: number, y: number, size: number, color: number): this {
+		if(size < 0) {
+			size = Math.abs(size);
+			y -= size;
+		}
+
 		for(let index: number = 0; index < size; index += 1) {
 			this.pixel(x, y + index, color);
 		}
