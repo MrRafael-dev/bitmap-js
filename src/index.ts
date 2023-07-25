@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 0.0.1
+ * @version 0.0.2
  * 
  * @description
  * Biblioteca de bitmap simples para JavaScript.
@@ -14,7 +14,7 @@
  * Apenas bitmaps no formato 8bpp são suportados.
  */
 
-//#region <color.js>
+//#region <color.ts>
 /**
  * @class Color
  * 
@@ -49,8 +49,8 @@ export class Color {
 	}
 }
 
-//#endregion </color.js>
-//#region <bitmap.js>
+//#endregion </color.ts>
+//#region <bitmap.ts>
 /**
  * @class Bitmap
  * 
@@ -440,7 +440,7 @@ export class Bitmap {
 	 */
 	public rectf(x: number, y: number, width: number, height: number, color: number): this {
 		for(let index: number = 0; index < height; index += 1) {
-			this.hline(x, y, width, color);
+			this.hline(x, y + index, width, color);
 		}
 
 		return this;
@@ -520,6 +520,81 @@ export class Bitmap {
 		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, mask, flipX, flipY);
 		return this;
 	}
+
+	/**
+	 * Desenha um texto na tela, utilizando uma imagem como fonte.
+	 * 
+	 * @param bitmap Imagem.
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @param cutX Posição X do recorte.
+	 * @param cutY Posição Y do recorte.
+	 * @param width Largura do recorte.
+	 * @param height Altura do recorte.
+	 * @param columns Número de caracteres por coluna.
+	 * @param charset Charset.
+	 * @param text Texto a ser escrito.
+	 * @param spacingX Espaçamento horizontal.
+	 * @param spacingY Espaçamento vertical.
+	 * @param mask Máscara de transparência.
+	 * @param flipX Quando `true`, inverte o recorte horizontalmente.
+	 * @param flipY Quando `true`, inverte o recorte verticalmente.
+	 * 
+	 * @returns {this}
+	 */
+	public text(bitmap: Bitmap, x: number, y: number, cutX: number, cutY: number, width: number, height: number, columns: number, charset: string, text: string, spacingX: number = 0, spacingY: number = 0, mask: number = -1, flipX: boolean = false, flipY: boolean = false): this {
+		// Posições do texto.
+		let line: number = 0;
+		let column: number = 0;
+
+		// Percorrer caracteres do texto...
+		for(let index: number = 0; index < text.length; index += 1) {
+			const char: string = text.charAt(index);
+			const charIndex: number = charset.indexOf(char);
+
+			// Quebrar linhas...
+			if(char === "\n") {
+				line += 1;
+				column = 0;
+				continue;
+			}
+
+			// Ignorar espaços e/ou caracteres que não existirem no charset...
+			if(charIndex < 0) {
+				column += 1;
+				continue;
+			}
+
+			// Obter posição do caractere na imagem...
+			const charRow: number = Math.floor(charIndex / columns) % columns;
+			const charColumn: number = charIndex % columns;
+
+			// Calcular valores de recorte...
+			const charX   : number = x     + (column     *  width) + (spacingX * column);
+			const charY   : number = y     + (line       * height) + (spacingY *   line);
+			const charCutX: number = cutX  + (charColumn *  width);
+			const charCutY: number = cutY  + (charRow    * height);
+
+			// Desenhar caractere...
+			this.blitsub(
+				bitmap,
+				charX,
+				charY,
+				charCutX,
+				charCutY,
+				width,
+				height,
+				mask,
+				flipX,
+				flipY
+			);
+
+			// Avançar para a próxima coluna...
+			column += 1;
+		}
+
+		return this;
+	}
 }
 
-//#endregion </bitmap.js>
+//#endregion </bitmap.ts>

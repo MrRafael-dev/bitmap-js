@@ -232,4 +232,26 @@ export declare class Bitmap {
      * @returns {this}
      */
     blit(bitmap: Bitmap, x: number, y: number, mask?: number, flipX?: boolean, flipY?: boolean): this;
+    /**
+     * Desenha um texto na tela, utilizando uma imagem como fonte.
+     *
+     * @param bitmap Imagem.
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param cutX Posição X do recorte.
+     * @param cutY Posição Y do recorte.
+     * @param width Largura do recorte.
+     * @param height Altura do recorte.
+     * @param columns Número de caracteres por coluna.
+     * @param charset Charset.
+     * @param text Texto a ser escrito.
+     * @param spacingX Espaçamento horizontal.
+     * @param spacingY Espaçamento vertical.
+     * @param mask Máscara de transparência.
+     * @param flipX Quando `true`, inverte o recorte horizontalmente.
+     * @param flipY Quando `true`, inverte o recorte verticalmente.
+     *
+     * @returns {this}
+     */
+    text(bitmap: Bitmap, x: number, y: number, cutX: number, cutY: number, width: number, height: number, columns: number, charset: string, text: string, spacingX?: number, spacingY?: number, mask?: number, flipX?: boolean, flipY?: boolean): this;
 }
