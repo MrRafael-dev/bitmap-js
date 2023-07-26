@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 0.0.1
+ * @version 0.0.2
  *
  * @description
  * Biblioteca de bitmap simples para JavaScript.
