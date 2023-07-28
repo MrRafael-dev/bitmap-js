@@ -282,6 +282,29 @@ export class Bitmap {
 	}
 
 	/**
+	 * Indica se uma determinada posição está dentro da área de desenho.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * 
+	 * @returns {boolean}
+	 */
+	public withinImage(x: number, y: number): boolean {
+		return x >= 0 && x < this._width && y >= 0 && y < this._height;
+	}
+
+	/**
+	 * Indica se um determinado índice de cor está dentro da paleta de cores.
+	 * 
+	 * @param index Índice da paleta.
+	 * 
+	 * @returns {boolean}
+	 */
+	public withinPalette(index: number): boolean {
+		return index >= 0 && index < PALETTE_SIZE;
+	}
+
+	/**
 	 * Define uma cor da paleta no índice especificado.
 	 * 
 	 * @param index Índice da paleta.
@@ -292,7 +315,7 @@ export class Bitmap {
 	public setColor(index: number, color: Color): boolean {
 		// O índice deve estar entre o tamanho da paleta.
 		// Do contrário, nada será feito.
-		if(index < 0 || index >= PALETTE_SIZE) {
+		if(!this.withinPalette(index)) {
 			return false;
 		}
 
@@ -319,7 +342,7 @@ export class Bitmap {
 	public getColor(index: number): Color {
 		// O índice deve estar entre o tamanho da paleta.
 		// Do contrário, será retornada uma cor padrão.
-		if(index < 0 || index >= PALETTE_SIZE) {
+		if(!this.withinPalette(index)) {
 			return new Color(0, 0, 0, 0);
 		}
 
@@ -380,18 +403,6 @@ export class Bitmap {
 	}
 
 	/**
-	 * Indica se uma determinada posição está dentro da área de desenho.
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * 
-	 * @returns {boolean}
-	 */
-	public within(x: number, y: number): boolean {
-		return (x >= 0 && x < this._width && y >= 0 && y < this._height);
-	}
-
-	/**
 	 * Define um *pixel* na posição especificada.
 	 * 
 	 * @param x Posição X.
@@ -401,12 +412,13 @@ export class Bitmap {
 	 * @returns {boolean}
 	 */
 	public setPixel(x: number, y: number, primaryColor: number): boolean {
-		// A posição deve estar na área de desenho.
+		// A posição deve estar na área de desenho e
+		// o índice deve estar entre o tamanho da paleta.
 		// Do contrário, nada será feito.
-		if(!this.within(x, y)) {
+		if(!this.withinImage(x, y) || !this.withinPalette(primaryColor)) {
 			return false;
 		}
-
+		
 		/** Posição Y, invertida. */
 		const iy: number = (this._height - 1) - y;
 
@@ -429,7 +441,7 @@ export class Bitmap {
 	public getPixel(x: number, y: number): number {
 		// A posição deve estar na área de desenho.
 		// Do contrário, será retornado uma cor de paleta negativa.
-		if(!this.within(x, y)) {
+		if(!this.withinImage(x, y)) {
 			return -1;
 		}
 
@@ -473,6 +485,27 @@ export class Bitmap {
 }
 
 //#endregion </bitmap.ts>
+
+export interface PixelShader {
+	apply(x: number, y: number, pixel: number): number;
+}
+
+export class MaskShader implements PixelShader {
+	mask: number;
+	
+	constructor(mask: number) {
+		this.mask = mask;
+	}
+	public apply(x: number, y: number, pixel: number): number {
+		if(pixel === 10) {
+			return -1;
+		}
+
+		return pixel;
+	}
+	
+}
+
 //#region <surface.ts>
 /**
  * @class Surface
@@ -482,7 +515,9 @@ export class Bitmap {
  * @todo
  */
 export class Surface {
-	bitmap: Bitmap;
+	private _bitmap: Bitmap;
+
+	private shaders: any[] = [];
 
 	/**
 	 * @constructor
@@ -490,34 +525,39 @@ export class Surface {
 	 * @param bitmap 
 	 */
 	constructor(bitmap: Bitmap) {
-		this.bitmap = bitmap;
+		this._bitmap = bitmap;
 	}
 
-	clear(primaryColor: number): this {
-		this.bitmap.clear(primaryColor);
+	public clear(primaryColor: number): this {
+		this._bitmap.clear(primaryColor);
 		return this;
 	}
 
-	setPixel(x: number, y: number, primaryColor: number): this {
-		this.bitmap.setPixel(x, y, primaryColor);
+	public setPixel(x: number, y: number, primaryColor: number): this {
+		this._bitmap.setPixel(x, y, primaryColor);
 		return this;
 	}
 
-	getPixel(x: number, y: number): number {
-		return this.bitmap.getPixel(x, y);
+	public getPixel(x: number, y: number): number {
+		return this._bitmap.getPixel(x, y);
 	}
 
-	getPixelColor(x: number, y: number): Color {
-		return this.bitmap.getPixelColor(x, y);
+	public getPixelColor(x: number, y: number): Color {
+		return this._bitmap.getPixelColor(x, y);
 	}
 
-	drawHorizontalLine(x: number, y: number, width: number, primaryColor: number): void {
+	public drawHorizontalLine(x: number, y: number, width: number, primaryColor: number, shaders: any[] = []): void {
 		for(let index: number = 0; index < width; index += 1) {
+			
+			for(let shaderIndex: number = 0; shaderIndex < shaders.length; shaderIndex += 1) {
+
+			}
+
 			this.setPixel(x + index, y, primaryColor);
 		}
 	}
 
-	drawVerticallLine(x: number, y: number, height: number, primaryColor: number): void {
+	public drawVerticallLine(x: number, y: number, height: number, primaryColor: number): void {
 		for(let index: number = 0; index < height; index += 1) {
 			this.setPixel(x, y + index, primaryColor);
 		}
