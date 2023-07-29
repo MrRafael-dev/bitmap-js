@@ -1,0 +1,31 @@
+{
+  "type": "module",
+  "name": "bitmap-js",
+  "version": "1.0.0",
+  "description": "Simple bitmap library for JavaScript.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc --build src/tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrRafael-dev/bitmap-js.git"
+  },
+  "keywords": [
+    "bitmap",
+    "bmp",
+    "graphics",
+    "canvas",
+    "draw",
+    "image",
+    "library",
+    "lib"
+  ],
+  "author": "Mr.Rafael",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MrRafael-dev/bitmap-js/issues"
+  },
+  "homepage": "https://github.com/MrRafael-dev/bitmap-js#readme"
+}
