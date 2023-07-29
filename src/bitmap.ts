@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.0
+ * @version 1.0.1
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -94,6 +94,48 @@ export class Color {
 	public a: number;
 
 	/**
+	 * Importa uma cor a partir de uma *string* hexadecimal.
+	 * 
+	 * @param value *String* hexadecimal. (ex: `#9E42F5FF`)
+	 * 
+	 * @returns {Color}
+	 */
+	public static fromHexString(value: string): Color {
+		/** Resultado. */
+		const result: Color = new Color(0, 0, 0, 0);
+		
+		/** *Set* de caracteres válidos para uma *string* hexadecimal. */
+		const charset: string = "0123456789abcdef";
+
+		/** Bytes de cor. */
+		let bytes: number[] = [0, 0, 0, 0, 0, 0, 0, 0];
+
+		/** *String* hexadecimal, em letras minúsculas. */
+		const lowerValue: string = value.toLowerCase();
+
+		// Percorrer e coletar bytes...
+		for(let index: number = 0; index < bytes.length; index += 1) {
+			const char: string = lowerValue.charAt(index + 1);
+
+			// Ignorar identificador "#"...
+			if(index === 0 && char === "#") {
+				continue;
+			}
+
+			const charIndex: number = charset.indexOf(char);
+			bytes[index] = charIndex >= 0? charIndex: 0;
+		}
+
+		// Calcular e definir bytes de cor...
+		result.r = (bytes[0] * 0x10) + bytes[1];
+		result.g = (bytes[2] * 0x10) + bytes[3];
+		result.b = (bytes[4] * 0x10) + bytes[5];
+		result.a = (bytes[6] * 0x10) + bytes[7];
+
+		return result;
+	}
+
+	/**
 	 * 
 	 * @param r Canal de cor vermelho (*red*).
 	 * @param g Canal de cor verde (*green*).
@@ -105,6 +147,20 @@ export class Color {
 		this.g = g;
 		this.b = b;
 		this.a = a;
+	}
+
+	/**
+	 * Exporta esta cor para uma *string* hexadecimal.
+	 * 
+	 * @returns {string}
+	 */
+	public toHexString(): string {
+		const r: string = this.r.toString(16).padStart(2, "0");
+		const g: string = this.g.toString(16).padStart(2, "0");
+		const b: string = this.b.toString(16).padStart(2, "0");
+		const a: string = this.a.toString(16).padStart(2, "0");
+
+		return `#${r}${g}${b}${a}`;
 	}
 }
 
@@ -256,7 +312,7 @@ export class Bitmap {
 		/** Dados de paleta e imagem do arquivo. */
 		const fragment: Uint8Array = file.slice(PALETTE_START, file.byteLength);
 
-		result.data.set(fragment, HEADER_DATA);
+		result.data.set(fragment, PALETTE_START);
 		return result;
 	}
 

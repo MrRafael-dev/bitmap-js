@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -29,6 +29,14 @@ export declare class Color {
     /** Canal de transparência (*alpha*). */
     a: number;
     /**
+     * Importa uma cor a partir de uma *string* hexadecimal.
+     *
+     * @param value *String* hexadecimal. (ex: `#9E42F5FF`)
+     *
+     * @returns {Color}
+     */
+    static fromHexString(value: string): Color;
+    /**
      *
      * @param r Canal de cor vermelho (*red*).
      * @param g Canal de cor verde (*green*).
@@ -36,6 +44,12 @@ export declare class Color {
      * @param a Canal de transparência (*alpha*).
      */
     constructor(r: number, g: number, b: number, a?: number);
+    /**
+     * Exporta esta cor para uma *string* hexadecimal.
+     *
+     * @returns {string}
+     */
+    toHexString(): string;
 }
 /**
  * @interface PixelShader

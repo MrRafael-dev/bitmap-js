@@ -2,7 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
-    "rootDir": "",
+    "rootDir": ".",
     "outDir": "../lib",
     "lib": ["ESNext"],
     "declaration": true,
