@@ -2,9 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.2a
- * 
- * @todo
+ * @version 1.0.2b
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -798,9 +796,9 @@ export class Surface extends Bitmap {
 	 * @param cy Posição Y de recorte.
 	 * @param width Largura.
 	 * @param height Altura.
-	 * @param scaleX @todo
-	 * @param scaleY @todo
-	 * @param rotation @todo
+	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+	 * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
@@ -828,6 +826,11 @@ export class Surface extends Bitmap {
 			Math.floor(scaleY)
 		: Math.ceil(scaleY);
 
+		/** Ângulo de rotação, representado em múltiplos de 90º. */
+		const angle: number = rotation < 0?
+			(Math.ceil(rotation) / 90)
+		: (Math.floor(rotation) / 90);
+
 		/** Largura do *pixel*. */
 		const pw: number = Math.abs(fx);
 
@@ -837,14 +840,13 @@ export class Surface extends Bitmap {
 		// Dependendo da escala vertical, a coluna será redesenhada
 		// várias veze sob offsets diferentes...
 		for(let pxy: number = 0; pxy < ph; pxy += 1) {
-
+			
 			// Percorrer linhas da imagem...
 			for(let dy: number = 0; dy < height; dy += 1) {
 
 				// Dependendo da escala horizontal, a linha será redesenhada 
 				// várias vezes sob offsets diferentes...
 				for(let pxi: number = 0; pxi < pw; pxi += 1) {
-
 					// Percorrer colunas da imagem...
 					for(let dx: number = 0; dx < width; dx += 1) {
 						const pixel: number = bitmap.getPixel(dx + cx, dy + cy);
@@ -867,11 +869,8 @@ export class Surface extends Bitmap {
 							shaders
 						);
 					}
-					
 				}
-
 			}
-
 		}
 
 		return this;
@@ -883,9 +882,9 @@ export class Surface extends Bitmap {
 	 * @param bitmap *Bitmap*.
 	 * @param x Posição X.
 	 * @param y Posição Y.
-	 * @param scaleX @todo
-	 * @param scaleY @todo
-	 * @param rotation @todo
+	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+	 * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
@@ -910,9 +909,9 @@ export class Surface extends Bitmap {
 	 * @param text Texto a ser escrito.
 	 * @param letterSpacing Espaçamento horizontal entre caracteres.
 	 * @param lineHeight Espaçamento vertical entre linhas.
-	 * @param scaleX @todo
-	 * @param scaleY @todo
-	 * @param rotation @todo
+	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+	 * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}

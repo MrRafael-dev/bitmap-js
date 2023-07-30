@@ -2,9 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.2a
- *
- * @todo
+ * @version 1.0.2b
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -342,9 +340,9 @@ export declare class Surface extends Bitmap {
      * @param cy Posição Y de recorte.
      * @param width Largura.
      * @param height Altura.
-     * @param scaleX @todo
-     * @param scaleY @todo
-     * @param rotation @todo
+     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+     * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
@@ -356,9 +354,9 @@ export declare class Surface extends Bitmap {
      * @param bitmap *Bitmap*.
      * @param x Posição X.
      * @param y Posição Y.
-     * @param scaleX @todo
-     * @param scaleY @todo
-     * @param rotation @todo
+     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+     * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
@@ -379,9 +377,9 @@ export declare class Surface extends Bitmap {
      * @param text Texto a ser escrito.
      * @param letterSpacing Espaçamento horizontal entre caracteres.
      * @param lineHeight Espaçamento vertical entre linhas.
-     * @param scaleX @todo
-     * @param scaleY @todo
-     * @param rotation @todo
+     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+     * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
