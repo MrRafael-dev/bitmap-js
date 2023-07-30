@@ -2,7 +2,9 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.1
+ * @version 1.0.2a
+ *
+ * @todo
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -340,26 +342,28 @@ export declare class Surface extends Bitmap {
      * @param cy Posição Y de recorte.
      * @param width Largura.
      * @param height Altura.
-     * @param mirrored Inverter horizontalmente.
-     * @param flipped Inverter verticalmente.
+     * @param scaleX @todo
+     * @param scaleY @todo
+     * @param rotation @todo
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
      */
-    blitsub(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, mirrored?: boolean, flipped?: boolean, shaders?: PixelShader[]): this;
+    blitsub(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX?: number, scaleY?: number, rotation?: number, shaders?: PixelShader[]): this;
     /**
      * Desenha um *bitmap* (completo).
      *
      * @param bitmap *Bitmap*.
      * @param x Posição X.
      * @param y Posição Y.
-     * @param mirrored Inverter horizontalmente.
-     * @param flipped Inverter verticalmente.
+     * @param scaleX @todo
+     * @param scaleY @todo
+     * @param rotation @todo
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
      */
-    blit(bitmap: Bitmap, x: number, y: number, mirrored?: boolean, flipped?: boolean, shaders?: PixelShader[]): this;
+    blit(bitmap: Bitmap, x: number, y: number, scaleX?: number, scaleY?: number, rotation?: number, shaders?: PixelShader[]): this;
     /**
      * Escreve um texto, utilizando um *bitmap* como fonte.
      *
@@ -375,11 +379,12 @@ export declare class Surface extends Bitmap {
      * @param text Texto a ser escrito.
      * @param letterSpacing Espaçamento horizontal entre caracteres.
      * @param lineHeight Espaçamento vertical entre linhas.
-     * @param mirrored Inverter horizontalmente.
-     * @param flipped Inverter verticalmente.
+     * @param scaleX @todo
+     * @param scaleY @todo
+     * @param rotation @todo
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
      */
-    text(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing?: number, lineHeight?: number, mirrored?: boolean, flipped?: boolean, shaders?: PixelShader[]): this;
+    text(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing?: number, lineHeight?: number, scaleX?: number, scaleY?: number, rotation?: number, shaders?: PixelShader[]): this;
 }

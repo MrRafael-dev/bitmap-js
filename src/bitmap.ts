@@ -2,7 +2,9 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.1
+ * @version 1.0.2a
+ * 
+ * @todo
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -210,7 +212,7 @@ export class MaskShader implements PixelShader {
 		this.mask = mask;
 	}
 
-	apply(x: number, y: number, previous: number, next: number): number {
+	public apply(x: number, y: number, previous: number, next: number): number {
 		// Descartar índice de cor da paleta quando este for igual ao definido
 		// pela máscara de transparência...
 		if(next === this.mask) {
@@ -796,25 +798,80 @@ export class Surface extends Bitmap {
 	 * @param cy Posição Y de recorte.
 	 * @param width Largura.
 	 * @param height Altura.
-	 * @param mirrored Inverter horizontalmente.
-	 * @param flipped Inverter verticalmente.
+	 * @param scaleX @todo
+	 * @param scaleY @todo
+	 * @param rotation @todo
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
 	 */
-	public blitsub(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, mirrored: boolean = false, flipped: boolean = false, shaders: PixelShader[] = []): this {
-		// Percorrer pixels...
-		for(let dy: number = 0; dy < height; dy += 1) {
-			for(let dx: number = 0; dx < width; dx += 1) {
-				const pixel: number = bitmap.getPixel(dx + cx, dy + cy);
+	public blitsub(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+		// A escala precisa ser um valor diferente de zero para funcionar.
+		// Do contrário, a operação será encerrada.
+		if(scaleX === 0 || scaleY === 0) {
+			return this;
+		}
 
-				// Calcular posição do pixel...
-				const px: number = mirrored? (width - 1) - (x + dx): x + dx;
-				const py: number = flipped? (height - 1) - (y + dy): y + dy;
+		/** Inverter horizontalmente. */
+		const mirrored: boolean = scaleX < 0? true: false;
 
-				// Desenhar pixel...
-				this.pixel(px, py, pixel, shaders);
+		/** Inverter verticalmente. */
+		const flipped: boolean = scaleY < 0? true: false;
+
+		/** *Offset* horizontal do *pixel*. */
+		const fx: number = mirrored?
+			Math.floor(scaleX)
+		: Math.ceil(scaleX);
+
+		/** *Offset* vertical do *pixel*. */
+		const fy: number = flipped?
+			Math.floor(scaleY)
+		: Math.ceil(scaleY);
+
+		/** Largura do *pixel*. */
+		const pw: number = Math.abs(fx);
+
+		/** Altura do *pixel*. */
+		const ph: number = Math.abs(fy);
+
+		// Dependendo da escala vertical, a coluna será redesenhada
+		// várias veze sob offsets diferentes...
+		for(let pxy: number = 0; pxy < ph; pxy += 1) {
+
+			// Percorrer linhas da imagem...
+			for(let dy: number = 0; dy < height; dy += 1) {
+
+				// Dependendo da escala horizontal, a linha será redesenhada 
+				// várias vezes sob offsets diferentes...
+				for(let pxi: number = 0; pxi < pw; pxi += 1) {
+
+					// Percorrer colunas da imagem...
+					for(let dx: number = 0; dx < width; dx += 1) {
+						const pixel: number = bitmap.getPixel(dx + cx, dy + cy);
+
+						/** Posição X calculada do *pixel*. */
+						const px: number = mirrored?
+							(width - 1) - (x + dx)
+						: x + dx;
+
+						/** Posição Y calculada do *pixel*. */
+						const py: number = flipped?
+							(height - 1) - (y + dy)
+						: y + dy;
+
+						// Desenhar pixel...
+						this.pixel(
+							px + ((pw - 1) * dx) + pxi, 
+							py + ((ph - 1) * dy) + pxy, 
+							pixel, 
+							shaders
+						);
+					}
+					
+				}
+
 			}
+
 		}
 
 		return this;
@@ -826,14 +883,15 @@ export class Surface extends Bitmap {
 	 * @param bitmap *Bitmap*.
 	 * @param x Posição X.
 	 * @param y Posição Y.
-	 * @param mirrored Inverter horizontalmente.
-	 * @param flipped Inverter verticalmente.
+	 * @param scaleX @todo
+	 * @param scaleY @todo
+	 * @param rotation @todo
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
 	 */
-	public blit(bitmap: Bitmap, x: number, y: number, mirrored: boolean = false, flipped: boolean = false, shaders: PixelShader[] = []): this {
-		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, mirrored, flipped, shaders);
+	public blit(bitmap: Bitmap, x: number, y: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, scaleX, scaleY, rotation, shaders);
 		return this;
 	}
 
@@ -852,13 +910,14 @@ export class Surface extends Bitmap {
 	 * @param text Texto a ser escrito.
 	 * @param letterSpacing Espaçamento horizontal entre caracteres.
 	 * @param lineHeight Espaçamento vertical entre linhas.
-	 * @param mirrored Inverter horizontalmente.
-	 * @param flipped Inverter verticalmente.
+	 * @param scaleX @todo
+	 * @param scaleY @todo
+	 * @param rotation @todo
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
 	 */
-	public text(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number = 0, lineHeight: number = 0, mirrored: boolean = false, flipped: boolean = false, shaders: PixelShader[] = []): this {
+	public text(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number = 0, lineHeight: number = 0, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
 		// Posições do texto.
 		let line: number = 0;
 		let column: number = 0;
@@ -886,10 +945,10 @@ export class Surface extends Bitmap {
 			const charColumn: number = charIndex % charColumns;
 
 			// Calcular valores de recorte...
-			const charX: number = x + (column *  width) + (letterSpacing * column);
+			const charX: number = x + (column * width) + (letterSpacing * column);
 			const charY: number = y + (line * height) + (lineHeight * line);
-			const charCutX: number = cx  + (charColumn *  width);
-			const charCutY: number = cy  + (charRow * height);
+			const charCutX: number = cx + (charColumn *  width);
+			const charCutY: number = cy + (charRow * height);
 
 			// Desenhar caractere...
 			this.blitsub(
@@ -900,8 +959,9 @@ export class Surface extends Bitmap {
 				charCutY,
 				width,
 				height,
-				mirrored,
-				flipped,
+				scaleX,
+				scaleY,
+				rotation,
 				shaders
 			);
 

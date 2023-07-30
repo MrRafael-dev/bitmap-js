@@ -5,6 +5,7 @@
     "rootDir": ".",
     "outDir": "../lib",
     "lib": ["ESNext"],
+    "module": "ES6",
     "declaration": true,
     "sourceMap": true
   }
