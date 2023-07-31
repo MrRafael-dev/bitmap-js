@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.2b
+ * @version 1.0.2c
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -554,11 +554,17 @@ export class Bitmap {
 			return false;
 		}
 		
+		/** Posição X, convertida para número inteiro. */
+		const px: number = x < 0? Math.floor(x): Math.ceil(x);
+
+		/** Posição Y, convertida para número inteiro. */
+		const py: number = y < 0? Math.floor(y): Math.ceil(y);
+
 		/** Posição Y, invertida. */
-		const iy: number = (this._height - 1) - y;
+		const iy: number = (this._height - 1) - py;
 
 		/** *Offset* do *pixel*. */
-		const offset: number = HEADER_SIZE + (this._width * iy) + x;
+		const offset: number = HEADER_SIZE + (this._width * iy) + px;
 
 		this._data[offset] = primaryColor;
 		return true;
@@ -828,8 +834,8 @@ export class Surface extends Bitmap {
 
 		/** Ângulo de rotação, representado em múltiplos de 90º. */
 		const angle: number = rotation < 0?
-			(Math.ceil(rotation) / 90)
-		: (Math.floor(rotation) / 90);
+			4 + ((Math.ceil(rotation) / 90) % 4) - 1
+		: (Math.floor(rotation) / 90) % 4;
 
 		/** Largura do *pixel*. */
 		const pw: number = Math.abs(fx);
