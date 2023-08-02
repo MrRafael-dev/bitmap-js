@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.2c
+ * @version 1.0.3
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -52,6 +52,70 @@ export declare class Color {
     toHexString(): string;
 }
 /**
+ * @class Pixel
+ *
+ * @description
+ * Estrutura representativa de um *pixel*.
+ *
+ * É utilizado para receber/retornar os dados de
+ * um *pixel* modificado por um *pixel shader*.
+ */
+export declare class Pixel {
+    /** Posição X. */
+    x: number;
+    /** Posição Y. */
+    y: number;
+    /** Índice equivalente à cor da paleta. */
+    color: number;
+    /**
+     * @constructor
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param color Índice equivalente à cor da paleta.
+     */
+    constructor(x: number, y: number, color: number);
+    /**
+     * Redefine todos os valores desta instância.
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param color Índice equivalente à cor da paleta.
+     *
+     * @returns {this}
+     */
+    setValues(x: number | null, y: number | null, color: number | null): this;
+    /**
+     * Limpa todos os valores desta instância, redefinindo a posição
+     * para `0` e o índice equivalente à cor da paleta para `-1`.
+     *
+     * @returns {this}
+     */
+    reset(): this;
+    /**
+     * Copia todos os valores desta instância para outra.
+     *
+     * @param pixel *Pixel*.
+     *
+     * @returns {this}
+     */
+    copyTo(pixel: Pixel): this;
+    /**
+     * Copia todos os valores de outra instância para esta.
+     *
+     * @param pixel *Pixel*.
+     *
+     * @returns {this}
+     */
+    copyFrom(pixel: Pixel): this;
+    /**
+     * Cria uma cópia desta instância.
+     *
+     * @returns {Pixel}
+     */
+    createCopy(): Pixel;
+}
+/**
  * @interface PixelShader
  *
  * @description
@@ -66,14 +130,15 @@ export interface PixelShader {
     /**
      * Aplica um efeito de *shader* sob um *pixel*.
      *
-     * @param x Posição X.
-     * @param y Posição Y.
+     * O *pixel* original e novo *pixel* são passados como uma cópia ao invés
+     * de referência. Para aplicar os efeitos, um *pixel* deve ser retornado.
+     *
      * @param previous *Pixel* original.
      * @param next Novo *pixel*.
      *
-     * @returns {number}
+     * @returns {Pixel}
      */
-    apply(x: number, y: number, previous: number, next: number): number;
+    pixelShader(previous: Pixel, next: Pixel): Pixel;
 }
 /**
  * @class MaskShader @implements PixelShader
@@ -90,7 +155,7 @@ export declare class MaskShader implements PixelShader {
      * @param mask Máscara de transparência.
      */
     constructor(mask?: number);
-    apply(x: number, y: number, previous: number, next: number): number;
+    pixelShader(previous: Pixel, next: Pixel): Pixel;
 }
 /**
  * @class Bitmap
@@ -342,7 +407,7 @@ export declare class Surface extends Bitmap {
      * @param height Altura.
      * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
      * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-     * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
+     * @param rotation (*não implementado*) Rotação da imagem.
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
@@ -356,7 +421,7 @@ export declare class Surface extends Bitmap {
      * @param y Posição Y.
      * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
      * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-     * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
+     * @param rotation (*não implementado*) Rotação da imagem.
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}
@@ -379,7 +444,7 @@ export declare class Surface extends Bitmap {
      * @param lineHeight Espaçamento vertical entre linhas.
      * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
      * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-     * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
+     * @param rotation (*não implementado*) Rotação da imagem.
      * @param shaders *Pixel shaders*.
      *
      * @returns {this}

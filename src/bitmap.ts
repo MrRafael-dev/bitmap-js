@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.2c
+ * @version 1.0.3
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -167,6 +167,100 @@ export class Color {
 //#endregion </color.ts>
 //#region <pixel_shader.ts>
 /**
+ * @class Pixel
+ * 
+ * @description
+ * Estrutura representativa de um *pixel*.
+ * 
+ * É utilizado para receber/retornar os dados de
+ * um *pixel* modificado por um *pixel shader*.
+ */
+export class Pixel {
+	/** Posição X. */
+	public x: number;
+
+	/** Posição Y. */
+	public y: number;
+
+	/** Índice equivalente à cor da paleta. */
+	public color: number;
+
+	/**
+	 * @constructor
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @param color Índice equivalente à cor da paleta.
+	 */
+	public constructor(x: number, y: number, color: number) {
+		this.x = x;
+		this.y = y;
+		this.color = color;
+	}
+
+	/**
+	 * Redefine todos os valores desta instância.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @param color Índice equivalente à cor da paleta.
+	 * 
+	 * @returns {this}
+	 */
+	public setValues(x: number | null, y: number | null, color: number | null): this {
+		this.x = x === null? this.x: x;
+		this.y = y === null? this.y: y;
+		this.color = color === null? this.color: color;
+
+		return this;
+	}
+
+	/**
+	 * Limpa todos os valores desta instância, redefinindo a posição
+	 * para `0` e o índice equivalente à cor da paleta para `-1`.
+	 * 
+	 * @returns {this}
+	 */
+	public reset(): this {
+		this.setValues(0, 0, -1);
+		return this;
+	}
+
+	/**
+	 * Copia todos os valores desta instância para outra.
+	 * 
+	 * @param pixel *Pixel*.
+	 * 
+	 * @returns {this}
+	 */
+	public copyTo(pixel: Pixel): this {
+		pixel.setValues(this.x, this.y, this.color);
+		return this;
+	}
+
+	/**
+	 * Copia todos os valores de outra instância para esta.
+	 * 
+	 * @param pixel *Pixel*.
+	 * 
+	 * @returns {this}
+	 */
+	public copyFrom(pixel: Pixel): this {
+		this.setValues(pixel.x, pixel.y, pixel.color);
+		return this;
+	}
+
+	/**
+	 * Cria uma cópia desta instância.
+	 * 
+	 * @returns {Pixel}
+	 */
+	public createCopy(): Pixel {
+		return new Pixel(this.x, this.y, this.color);
+	}
+}
+
+/**
  * @interface PixelShader
  * 
  * @description
@@ -181,14 +275,15 @@ export interface PixelShader {
 	/**
 	 * Aplica um efeito de *shader* sob um *pixel*.
 	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
+	 * O *pixel* original e novo *pixel* são passados como uma cópia ao invés
+	 * de referência. Para aplicar os efeitos, um *pixel* deve ser retornado.
+	 * 
 	 * @param previous *Pixel* original.
 	 * @param next Novo *pixel*.
 	 * 
-	 * @returns {number}
+	 * @returns {Pixel}
 	 */
-	apply(x: number, y: number, previous: number, next: number): number;
+	pixelShader(previous: Pixel, next: Pixel): Pixel;
 }
 
 /**
@@ -210,11 +305,11 @@ export class MaskShader implements PixelShader {
 		this.mask = mask;
 	}
 
-	public apply(x: number, y: number, previous: number, next: number): number {
+	public pixelShader(previous: Pixel, next: Pixel): Pixel {
 		// Descartar índice de cor da paleta quando este for igual ao definido
 		// pela máscara de transparência...
-		if(next === this.mask) {
-			return -1;
+		if(next.color === this.mask) {
+			next.color = -1;
 		}
 
 		return next;
@@ -659,22 +754,25 @@ export class Surface extends Bitmap {
 	 */
 	public pixel(x: number, y: number, primaryColor: number, shaders: PixelShader[] = []): this {
 		/** *Pixel* original. */
-		let previous: number = this.getPixel(x, y);
+		let previous: Pixel = new Pixel(x, y, this.getPixel(x, y));
 
 		/** Novo *pixel*. */
-		let next: number = primaryColor;
+		let next: Pixel = new Pixel(x, y, primaryColor);
 
 		// Aplicar pixel shaders...
 		for(let index: number = 0; index < shaders.length; index += 1) {
 			const shader: PixelShader = shaders[index];
-			const result: number = shader.apply(x, y, previous, next);
+			const result: Pixel = shader.pixelShader(
+				previous.createCopy(), 
+				next.createCopy()
+			);
 
 			// Avançar sequência de pixels...
 			previous = next;
 			next = result;
 		}
 
-		this.setPixel(x, y, next);
+		this.setPixel(next.x, next.y, next.color);
 		return this;
 	}
 
@@ -743,10 +841,10 @@ export class Surface extends Bitmap {
 	 * @returns {this}
 	 */
 	public rectb(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[] = []): this {
-		this.hline(x, y, width, primaryColor);
-		this.hline(x, y + height, width, primaryColor);
-		this.vline(x, y + 1, height - 1, primaryColor);
-		this.vline(x + width - 1, y + 1, height - 1, primaryColor);
+		this.hline(x, y, width, primaryColor, shaders);
+		this.hline(x, y + height, width, primaryColor, shaders);
+		this.vline(x, y + 1, height - 1, primaryColor, shaders);
+		this.vline(x + width - 1, y + 1, height - 1, primaryColor, shaders);
 
 		return this;
 	}
@@ -766,7 +864,7 @@ export class Surface extends Bitmap {
 	public rectf(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[] = []): this {
 		// Desenhar linhas...
 		for(let index: number = 0; index < height; index += 1) {
-			this.hline(x, y + index, width, primaryColor);
+			this.hline(x, y + index, width, primaryColor, shaders);
 		}
 
 		return this;
@@ -804,7 +902,7 @@ export class Surface extends Bitmap {
 	 * @param height Altura.
 	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
 	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-	 * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
+	 * @param rotation (*não implementado*) Rotação da imagem.
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
@@ -832,11 +930,6 @@ export class Surface extends Bitmap {
 			Math.floor(scaleY)
 		: Math.ceil(scaleY);
 
-		/** Ângulo de rotação, representado em múltiplos de 90º. */
-		const angle: number = rotation < 0?
-			4 + ((Math.ceil(rotation) / 90) % 4) - 1
-		: (Math.floor(rotation) / 90) % 4;
-
 		/** Largura do *pixel*. */
 		const pw: number = Math.abs(fx);
 
@@ -845,7 +938,7 @@ export class Surface extends Bitmap {
 
 		// Dependendo da escala vertical, a coluna será redesenhada
 		// várias veze sob offsets diferentes...
-		for(let pxy: number = 0; pxy < ph; pxy += 1) {
+		for(let pyi: number = 0; pyi < ph; pyi += 1) {
 			
 			// Percorrer linhas da imagem...
 			for(let dy: number = 0; dy < height; dy += 1) {
@@ -870,7 +963,7 @@ export class Surface extends Bitmap {
 						// Desenhar pixel...
 						this.pixel(
 							px + ((pw - 1) * dx) + pxi, 
-							py + ((ph - 1) * dy) + pxy, 
+							py + ((ph - 1) * dy) + pyi, 
 							pixel, 
 							shaders
 						);
@@ -890,7 +983,7 @@ export class Surface extends Bitmap {
 	 * @param y Posição Y.
 	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
 	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-	 * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
+	 * @param rotation (*não implementado*) Rotação da imagem.
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
@@ -917,7 +1010,7 @@ export class Surface extends Bitmap {
 	 * @param lineHeight Espaçamento vertical entre linhas.
 	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
 	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-	 * @param rotation Rotaciona a imagem. Os valores são convertidos para múltiplos de 90º.
+	 * @param rotation (*não implementado*) Rotação da imagem.
 	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
