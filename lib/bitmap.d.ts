@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.3
+ * @version 1.0.4
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -13,6 +13,58 @@
  * Apenas *bitmaps* descomprimido com uma paleta
  * de 256 cores (formato *8bpp*) são suportados.
  */
+/**
+ * @class Base64Encoder
+ *
+ * @description
+ * Codificador de *Base64*.
+ */
+export declare class Base64Encoder {
+    /**
+     * Retorna um segmento de caracteres formado pelos *bytes* especiifcados.
+     *
+     * @param byte1 Primeiro *byte*.
+     * @param byte2 Segundo *byte*.
+     * @param byte3 Terceiro *byte*.
+     * @param padding Espaçamento com `=`. (de 0 a 2)
+     *
+     * @returns {string}
+     */
+    private getSegments;
+    /**
+     * Codifica uma *array* de *bytes* para um texto em *Base64*.
+     *
+     * @param data *Array* de *bytes*.
+     *
+     * @returns {string}
+     */
+    encode(data: Uint8Array): string;
+}
+/**
+ * @class Base64Encoder
+ *
+ * @description
+ * Decodificador de *Base64*.
+ */
+export declare class Base64Decoder {
+    /**
+     * Restaura e retorna um *byte* formado por um segmento de caracteres.
+     *
+     * @param charIndex1 Índice do primeiro caractere.
+     * @param charIndex2 Índice do segundo caractere.
+     * @param charIndex3 Índice do terceiro caractere.
+     * @param charIndex4 Índice do quarto caractere.
+     *
+     * @returns {Uint8Array}
+     */
+    private restoreSegment;
+    /**
+     * Decodifica um texto em *Base64* para uma *array* de *bytes*.
+     *
+     * @param text Texto em *Base64*.
+     */
+    decode(text: string): Uint8Array;
+}
 /**
  * @class Color
  *
@@ -203,9 +255,9 @@ export declare class Bitmap {
      *
      * @param mask Máscara de transparência.
      *
-     * @returns {Uint8Array}
+     * @returns {Uint8ClampedArray}
      */
-    toImageData(mask?: number): Uint8Array;
+    toImageData(mask?: number): Uint8ClampedArray;
     /**
      * Indica se uma determinada posição está dentro da área de desenho.
      *

@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.3
+ * @version 1.0.4
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -72,7 +72,280 @@ const defaultHeader: Uint8Array = new Uint8Array([
 	0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
 ]);
 
+/** Tabela de caracteres da codificação *Base64*. */
+const base64Table: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 //#endregion </constants.ts>
+//#region <base64.ts>
+/**
+ * @class Base64Encoder
+ * 
+ * @description
+ * Codificador de *Base64*.
+ */
+export class Base64Encoder {
+	/**
+	 * Retorna um segmento de caracteres formado pelos *bytes* especiifcados.
+	 * 
+	 * @param byte1 Primeiro *byte*. 
+	 * @param byte2 Segundo *byte*. 
+	 * @param byte3 Terceiro *byte*. 
+	 * @param padding Espaçamento com `=`. (de 0 a 2)
+	 * 
+	 * @returns {string}
+	 */
+	private getSegments(byte1: number, byte2: number, byte3: number, padding: number = 0): string {
+		/** Índice do primeiro caractere. */
+		const charIndex1: number = 
+			(((byte1 >>> 7) & 1) * 32)
+		+ (((byte1 >>> 6) & 1) * 16)
+		+ (((byte1 >>> 5) & 1) * 8)
+		+ (((byte1 >>> 4) & 1) * 4)
+		+ (((byte1 >>> 3) & 1) * 2)
+		+ ((byte1 >>> 2) & 1);
+
+		/** Índice do segundo caractere. */
+		const charIndex2: number =
+			(((byte1 >>> 1) & 1) * 32)
+		+ (((byte1 >>> 0) & 1) * 16)
+		+ (((byte2 >>> 7) & 1) * 8)
+		+ (((byte2 >>> 6) & 1) * 4)
+		+ (((byte2 >>> 5) & 1) * 2)
+		+ ((byte2 >>> 4) & 1);
+
+		/** Índice do terceiro caractere. */
+		const charIndex3: number =
+			(((byte2 >>> 3) & 1) * 32)
+		+ (((byte2 >>> 2) & 1) * 16)
+		+ (((byte2 >>> 1) & 1) * 8)
+		+ (((byte2 >>> 0) & 1) * 4)
+		+ (((byte3 >>> 7) & 1) * 2)
+		+ ((byte3 >>> 6) & 1);
+
+		/** Índice do quarto caractere. */
+		const charIndex4: number =
+			(((byte3 >>> 5) & 1) * 32)
+		+ (((byte3 >>> 4) & 1) * 16)
+		+ (((byte3 >>> 3) & 1) * 8)
+		+ (((byte3 >>> 2) & 1) * 4)
+		+ (((byte3 >>> 1) & 1) * 2)
+		+ ((byte3 >>> 0) & 1);
+
+		/** Primeiro caractere. */
+		const char1: string = base64Table.charAt(charIndex1);
+
+		/** Segundo caractere. */
+		const char2: string = base64Table.charAt(charIndex2);
+
+		/** Terceiro caractere. (`=` quando `padding` é maior ou igual a 1) */
+		const char3: string = padding > 1? "=": base64Table.charAt(charIndex3);
+
+		/** Terceiro caractere. (`=` quando `padding` é maior ou igual a 2) */
+		const char4: string = padding > 0? "=": base64Table.charAt(charIndex4);
+
+		return `${char1}${char2}${char3}${char4}`;
+	}
+
+	/**
+	 * Codifica uma *array* de *bytes* para um texto em *Base64*.
+	 * 
+	 * @param data *Array* de *bytes*.
+	 * 
+	 * @returns {string}
+	 */
+	public encode(data: Uint8Array): string {		
+		/** Tamanho esperado do resultado, em caracteres. */
+		const size: number = Math.ceil(data.byteLength / 3) * 4;
+		
+		/** *Cache* para os segmentos de caracteres. */
+		const segmentCache: string[] = [];
+
+		/** *Cache* temporário. */
+		const cache: Uint8Array = new Uint8Array(3);
+
+		/** Índice de leitura para o *cache* temporário. */
+		let cacheIndex: number = 0;
+
+		// Percorrer bytes, em chunks...
+		for(let index: number = 0; index < data.byteLength; index += 1) {
+			const byte: number = data[index];
+
+			// Salvar bytes até preencher todo o cache:
+			cache[cacheIndex] = byte;
+			cacheIndex += 1;
+
+			// Segmentar cache...
+			if(cacheIndex === cache.byteLength) {
+				const byte1: number = cache[0];
+				const byte2: number = cache[1];
+				const byte3: number = cache[2];
+
+				segmentCache.push(this.getSegments(byte1, byte2, byte3));
+				cacheIndex = 0;
+			}
+		}
+
+		// Segmentar o que sobrar do cache...
+		if(cacheIndex > 0) {
+			const byte1: number = cache[0];
+			const byte2: number = cache[1];
+			const byte3: number = cache[2];
+			const padding: number = 3 - cacheIndex;
+			
+			segmentCache.push(this.getSegments(byte1, byte2, byte3, padding));
+		}
+
+		return segmentCache.join("");
+	}
+}
+
+/**
+ * @class Base64Encoder
+ * 
+ * @description
+ * Decodificador de *Base64*.
+ */
+export class Base64Decoder {
+	/**
+	 * Restaura e retorna um *byte* formado por um segmento de caracteres.
+	 * 
+	 * @param charIndex1 Índice do primeiro caractere.
+	 * @param charIndex2 Índice do segundo caractere.
+	 * @param charIndex3 Índice do terceiro caractere.
+	 * @param charIndex4 Índice do quarto caractere.
+	 * 
+	 * @returns {Uint8Array}
+	 */
+	private restoreSegment(charIndex1: number, charIndex2: number, charIndex3: number, charIndex4: number): Uint8Array {		
+		/** Índice do primeiro *byte*. */
+		const byte1: number = 
+			(((charIndex1 >>> 5) & 1) * 128)
+		+ (((charIndex1 >>> 4) & 1) * 64)
+		+ (((charIndex1 >>> 3) & 1) * 32)
+		+ (((charIndex1 >>> 2) & 1) * 16)
+		+ (((charIndex1 >>> 1) & 1) * 8)
+		+ (((charIndex1 >>> 0) & 1) * 4)
+		+ (((charIndex2 >>> 5) & 1) * 2)
+		+ ((charIndex2 >>> 4) & 1);
+
+		/** Índice do segundo *byte*. */
+		const byte2: number = 
+			(((charIndex2 >>> 3) & 1) * 128)
+		+ (((charIndex2 >>> 2) & 1) * 64)
+		+ (((charIndex2 >>> 1) & 1) * 32)
+		+ (((charIndex2 >>> 0) & 1) * 16)
+		+ (((charIndex3 >>> 5) & 1) * 8)
+		+ (((charIndex3 >>> 4) & 1) * 4)
+		+ (((charIndex3 >>> 3) & 1) * 2)
+		+ ((charIndex3 >>> 2) & 1);
+
+		/** Índice do terceiro *byte*. */
+		const byte3: number = 
+			(((charIndex3 >>> 1) & 1) * 128)
+		+ (((charIndex3 >>> 0) & 1) * 64)
+		+ (((charIndex4 >>> 5) & 1) * 32)
+		+ (((charIndex4 >>> 4) & 1) * 16)
+		+ (((charIndex4 >>> 3) & 1) * 8)
+		+ (((charIndex4 >>> 2) & 1) * 4)
+		+ (((charIndex4 >>> 1) & 1) * 2)
+		+ ((charIndex4 >>> 0) & 1);
+
+		return new Uint8Array([byte1, byte2, byte3]);
+	}
+
+	/**
+	 * Decodifica um texto em *Base64* para uma *array* de *bytes*.
+	 * 
+	 * @param text Texto em *Base64*.
+	 */
+	public decode(text: string): Uint8Array {
+		/** Tamanho esperado do resultado, em *bytes*. */
+		let size: number = ((text.length / 4) * 3);
+
+		/** Último caractere. */
+		const lastChar: string = text.charAt(text.length - 1);
+
+		/** Penúltimo caractere. */
+		const penultChar: string = text.charAt(text.length - 2);
+
+		// Descontar tamanho quando o último caractere for de espaçamento...
+		if(lastChar === "=") {
+			size -= 1;
+		}
+
+		// Descontar tamanho quando o penúltimo caractere for de espaçamento...
+		if(penultChar === "=") {
+			size -= 1;
+		}
+
+		/** Resultado a ser retornado. */
+		const result: Uint8Array = new Uint8Array(size);
+
+		/** *Cache* temporário. */
+		const cache: Uint8Array = new Uint8Array(4);
+
+		/** Índice de leitura para o *cache* temporário. */
+		let cacheIndex: number = 0;
+
+		// Percorrer caracteres...
+		for(let index: number = 0; index < text.length; index += 1) {
+			const char: string = text.charAt(index);
+			const charIndex: number = base64Table.indexOf(char);
+
+			// Encerrar operação quando alcançar um caractere de espaçamento:
+			if(char === "=") {
+				const charIndex1: number = cache[0];
+				const charIndex2: number = cache[1];
+				const charIndex3: number = cache[2];
+				const charIndex4: number = cache[3];
+
+				// Obter segmento (dividido)...
+				const segment: Uint8Array = this.restoreSegment(
+					charIndex1, 
+					charIndex2,
+					charIndex3,
+					charIndex4
+				).slice(0, cacheIndex - 1);
+				
+				result.set(segment, size - segment.byteLength);
+				break;
+			}
+			
+			// Textos codificados em Base64 possuem um set de caracteres
+			// bem específico, e podem ter até no máximo dois espaçamentos
+			// representados pelo caractere "=".
+			else if(charIndex < 0) {
+				throw new Error(`Invalid character at index ${index}.`);
+			}
+
+			// Salvar índices dos caracteres até preencher todo o cache:
+			cache[cacheIndex] = charIndex;
+			cacheIndex += 1;
+
+			// Segmentar cache...
+			if(cacheIndex === cache.byteLength) {
+				const charIndex1: number = cache[0];
+				const charIndex2: number = cache[1];
+				const charIndex3: number = cache[2];
+				const charIndex4: number = cache[3];
+				
+				// Obter segmento (completo):
+				const segment: Uint8Array = this.restoreSegment(
+					charIndex1, 
+					charIndex2,
+					charIndex3,
+					charIndex4
+				);
+				
+				result.set(segment, index - 4);
+				cacheIndex = 0;
+			}
+		}
+
+		return result;
+	}
+}
+
+//#endregion </base64.ts>
 //#region <color.ts>
 /**
  * @class Color
@@ -160,7 +433,7 @@ export class Color {
 		const b: string = this.b.toString(16).padStart(2, "0");
 		const a: string = this.a.toString(16).padStart(2, "0");
 
-		return `#${r}${g}${b}${a}`;
+		return `${r}${g}${b}${a}`;
 	}
 }
 
@@ -471,11 +744,11 @@ export class Bitmap {
 	 * 
 	 * @param mask Máscara de transparência.
 	 * 
-	 * @returns {Uint8Array}
+	 * @returns {Uint8ClampedArray}
 	 */
-	public toImageData(mask: number = -1): Uint8Array {
+	public toImageData(mask: number = -1): Uint8ClampedArray {
 		/** Resultado a ser retornado. */
-		const result: Uint8Array = new Uint8Array(this._size * 4);
+		const result: Uint8ClampedArray = new Uint8ClampedArray(this._size * 4);
 
 		// Percorrer pixels da imagem...
 		for(let y: number = 0; y < this._height; y += 1) {
@@ -492,7 +765,7 @@ export class Bitmap {
 				const color: Color = this.getColor(pixel);
 
 				/** Índice a ser alterado no resultado. */
-				const index: number = (this._width * y) + x;
+				const index: number = ((this._width * y) + x) * 4;
 
 				// Escrever cores...
 				//

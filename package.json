@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "bitmap-js",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Simple bitmap library for JavaScript.",
   "main": "index.js",
   "scripts": {
