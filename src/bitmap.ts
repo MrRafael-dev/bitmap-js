@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.4
+ * @version 1.0.5
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -72,10 +72,12 @@ const defaultHeader: Uint8Array = new Uint8Array([
 	0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
 ]);
 
-/** Tabela de caracteres da codificação *Base64*. */
-const base64Table: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 //#endregion </constants.ts>
 //#region <base64.ts>
+/** Tabela de caracteres da codificação *Base64*. */
+const base64Table: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 /**
  * @class Base64Encoder
  * 
@@ -180,6 +182,7 @@ export class Base64Encoder {
 				const byte3: number = cache[2];
 
 				segmentCache.push(this.getSegments(byte1, byte2, byte3));
+				cache.fill(0);
 				cacheIndex = 0;
 			}
 		}
@@ -281,7 +284,10 @@ export class Base64Decoder {
 		const result: Uint8Array = new Uint8Array(size);
 
 		/** *Cache* temporário. */
-		const cache: Uint8Array = new Uint8Array(4);
+		const cache: Uint8Array = new Uint8Array(3);
+
+		/** Índice de escrita para o resultado. */
+		let resultIndex: number = 0;
 
 		/** Índice de leitura para o *cache* temporário. */
 		let cacheIndex: number = 0;
@@ -306,7 +312,7 @@ export class Base64Decoder {
 					charIndex4
 				).slice(0, cacheIndex - 1);
 				
-				result.set(segment, size - segment.byteLength);
+				result.set(segment, resultIndex);
 				break;
 			}
 			
@@ -336,7 +342,9 @@ export class Base64Decoder {
 					charIndex4
 				);
 				
-				result.set(segment, index - 4);
+				result.set(segment, resultIndex);
+				cache.fill(0);
+				resultIndex += 3;
 				cacheIndex = 0;
 			}
 		}
@@ -590,6 +598,129 @@ export class MaskShader implements PixelShader {
 }
 
 //#endregion </pixel_shader.ts>
+//#region <drawable.ts>
+/**
+ * @interface Drawable
+ * 
+ * @description
+ * Estrutura representativa de um *bitmap*.
+ * 
+ * Esta estrutura pode ser usada para implementar um novo formato de imagem,
+ * que poderá então ser usado por uma *surface*.
+ */
+export interface Drawable {
+	/** Largura da imagem. */
+	width: number;
+
+	/** Altura da imagem. */
+	height: number;
+
+	/** Tamanho da área da imagem, em *pixels*. */
+	size: number;
+
+	/** Dados da imagem. */
+	data: Uint8Array;
+
+	/**
+	 * Indica se uma determinada posição está dentro da área de desenho.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * 
+	 * @returns {boolean}
+	 */
+	withinImage(x: number, y: number): boolean;
+
+	/**
+	 * Indica se um determinado índice de cor está dentro da paleta de cores.
+	 * 
+	 * @param index Índice da paleta.
+	 * 
+	 * @returns {boolean}
+	 */
+	withinPalette(index: number): boolean;
+
+	/**
+	 * Define uma cor da paleta no índice especificado.
+	 * 
+	 * @param index Índice da paleta.
+	 * @param color Cor.
+	 * 
+	 * @returns {boolean}
+	 */
+	setColor(index: number, color: Color): boolean;
+
+	/**
+	 * Obtém uma cópia da cor da paleta no índice especificado.
+	 * Retorna uma cor `#000000` quando não existe.
+	 * 
+	 * @param index Índice da paleta.
+	 * 
+	 * @returns {Color}
+	 */
+	getColor(index: number): Color;
+
+	/**
+	 * Define uma nova paleta de cores.
+	 * 
+	 * @param colors Cores.
+	 * 
+	 * @returns {boolean}
+	 */
+	setPalette(colors: Color[]): boolean;
+
+	/**
+	 * Obtém uma cópia da paleta de cores.
+	 * 
+	 * @returns {Color[]}
+	 */
+	getPalette(): Color[];
+
+	/**
+	 * Obtém um *pixel* na posição especificada.
+	 * Retorna a cor de paleta `-1` quando não existe.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * 
+	 * @returns {number}
+	 */
+	setPixel(x: number, y: number, primaryColor: number): boolean;
+
+	/**
+	 * Define um *pixel* na posição especificada.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @param primaryColor Cor da paleta (primária).
+	 * 
+	 * @returns {boolean}
+	 */
+	getPixel(x: number, y: number): number;
+
+	/**
+	 * Retorna uma cópia da cor da paleta equivalente a um
+	 * *pixel* escolhido na posição especificada.
+	 * Retorna uma cor `#000000` quando não existe.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * 
+	 * @returns {Color}
+	 */
+	getPixelColor(x: number, y: number): Color;
+
+	/**
+	 * Limpa todo o conteúdo da imagem.
+	 * 
+	 * @param primaryColor Cor da paleta (primária).
+	 * 
+	 * @returns {boolean}
+	 */
+	clearImage(primaryColor: number): boolean
+}
+
+//#endregion </drawable.ts>
 //#region <bitmap.ts>
 /**
  * @class Bitmap
@@ -598,7 +729,7 @@ export class MaskShader implements PixelShader {
  * Representa um *bitmap* descomprimido com
  * uma paleta de 256 cores (formato *8bpp*).
  */
-export class Bitmap {
+export class Bitmap implements Drawable {
 	/** Largura. */
 	private _width: number;
 
@@ -1000,19 +1131,24 @@ export class Bitmap {
  * 
  * @description
  * Representa uma camada de abstração para um *bitmap*.
- * Com uma *surace*, é possível realizar uma série de operações básicas
+ * Com uma *surface*, é possível realizar uma série de operações básicas
  * de desenho, como linhas, retângulos e outros *bitmaps*.
  */
-export class Surface extends Bitmap {
+export class Surface<T extends Drawable> {
+	/** *Bitmap*. */
+	private _drawable: T;
+
 	/**
 	 * @constructor
 	 * 
-	 * @param width Largura.
-	 * @param height Altura.
-	 * @param colors Cores.
+	 * @param drawable *Bitmap*.
 	 */
-	constructor(width: number, height: number, colors: Color[] = []) {
-		super(width, height, colors);
+	constructor(drawable: T) {
+		this._drawable = drawable;
+	}
+
+	get drawable(): T {
+		return this._drawable;
 	}
 
 	/**
@@ -1027,7 +1163,7 @@ export class Surface extends Bitmap {
 	 */
 	public pixel(x: number, y: number, primaryColor: number, shaders: PixelShader[] = []): this {
 		/** *Pixel* original. */
-		let previous: Pixel = new Pixel(x, y, this.getPixel(x, y));
+		let previous: Pixel = new Pixel(x, y, this._drawable.getPixel(x, y));
 
 		/** Novo *pixel*. */
 		let next: Pixel = new Pixel(x, y, primaryColor);
@@ -1045,7 +1181,7 @@ export class Surface extends Bitmap {
 			next = result;
 		}
 
-		this.setPixel(next.x, next.y, next.color);
+		this._drawable.setPixel(next.x, next.y, next.color);
 		return this;
 	}
 
@@ -1057,7 +1193,7 @@ export class Surface extends Bitmap {
 	 * @returns {this}
 	 */
 	public clear(primaryColor: number): this {
-		this.clearImage(primaryColor);
+		this._drawable.clearImage(primaryColor);
 		return this;
 	}
 
@@ -1166,7 +1302,7 @@ export class Surface extends Bitmap {
 	/**
 	 * Desenha um *bitmap* (recortado).
 	 * 
-	 * @param bitmap *Bitmap*.
+	 * @param drawable *Bitmap*.
 	 * @param x Posição X.
 	 * @param y Posição Y.
 	 * @param cx Posição X de recorte.
@@ -1180,7 +1316,7 @@ export class Surface extends Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public blitsub(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+	public blitsub(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
 		// A escala precisa ser um valor diferente de zero para funcionar.
 		// Do contrário, a operação será encerrada.
 		if(scaleX === 0 || scaleY === 0) {
@@ -1221,7 +1357,7 @@ export class Surface extends Bitmap {
 				for(let pxi: number = 0; pxi < pw; pxi += 1) {
 					// Percorrer colunas da imagem...
 					for(let dx: number = 0; dx < width; dx += 1) {
-						const pixel: number = bitmap.getPixel(dx + cx, dy + cy);
+						const pixel: number = drawable.getPixel(dx + cx, dy + cy);
 
 						/** Posição X calculada do *pixel*. */
 						const px: number = mirrored?
@@ -1251,7 +1387,7 @@ export class Surface extends Bitmap {
 	/**
 	 * Desenha um *bitmap* (completo).
 	 * 
-	 * @param bitmap *Bitmap*.
+	 * @param drawable *Bitmap*.
 	 * @param x Posição X.
 	 * @param y Posição Y.
 	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
@@ -1261,15 +1397,15 @@ export class Surface extends Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public blit(bitmap: Bitmap, x: number, y: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
-		this.blitsub(bitmap, x, y, 0, 0, bitmap.width, bitmap.height, scaleX, scaleY, rotation, shaders);
+	public blit(drawable: Drawable, x: number, y: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+		this.blitsub(drawable, x, y, 0, 0, drawable.width, drawable.height, scaleX, scaleY, rotation, shaders);
 		return this;
 	}
 
 	/**
 	 * Escreve um texto, utilizando um *bitmap* como fonte.
 	 * 
-	 * @param bitmap *Bitmap*.
+	 * @param drawable *Bitmap*.
 	 * @param x Posição X.
 	 * @param y Posição Y.
 	 * @param cx Posição X de recorte.
@@ -1288,7 +1424,7 @@ export class Surface extends Bitmap {
 	 * 
 	 * @returns {this}
 	 */
-	public text(bitmap: Bitmap, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number = 0, lineHeight: number = 0, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+	public text(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number = 0, lineHeight: number = 0, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
 		// Posições do texto.
 		let line: number = 0;
 		let column: number = 0;
@@ -1323,7 +1459,7 @@ export class Surface extends Bitmap {
 
 			// Desenhar caractere...
 			this.blitsub(
-				bitmap,
+				drawable,
 				charX,
 				charY,
 				charCutX,
