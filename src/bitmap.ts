@@ -625,7 +625,7 @@ export class Bitmap implements Drawable {
 		this._data = new Uint8Array(HEADER_SIZE + this._size);
 
 		/** Visualizador de dados da imagem. */
-		const view = new DataView(this._data.buffer);
+		const view: DataView = new DataView(this._data.buffer);
 		
 		// Inserir cabeçalho...
 		this._data.set(defaultHeader, 0);
