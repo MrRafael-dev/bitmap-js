@@ -54,7 +54,8 @@ const PALETTE_START: number = 54;
  * Assume-se um *bitmap* descomprimido com
  * uma paleta de 256 cores (formato *8bpp*).
  */
-const defaultHeader: Uint8Array = new Uint8Array([
+const defaultHeader: Uint8Array = new Uint8Array(54);
+defaultHeader.set([
 	0x42, 0x4d,             // Número mágico ("BM").
 	0x00, 0x00, 0x00, 0x00, // Tamanho do arquivo, em bytes.
 	0x00, 0x00, 0x00, 0x00, // Reservado (sem uso).
@@ -71,7 +72,6 @@ const defaultHeader: Uint8Array = new Uint8Array([
 	0x00, 0x01, 0x00, 0x00, // Número de cores em uso.
 	0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
 ]);
-
 
 //#endregion </constants.ts>
 //#region <color.ts>
