@@ -5,7 +5,7 @@
  * @version 1.0.7
  * 
  * @description
- * Biblioteca de *bitmap* simples para *JavaScript*.
+ * Biblioteca de *bitmap* simples para *AssemblyScript*.
  * 
  * Esta biblioteca permite importar/exportar *bitmaps* e oferece algumas
  * funcionalidades básicas de desenho.
@@ -16,37 +16,37 @@
 
 //#region <constants.ts>
 /** Tamanho do cabeçalho (incluindo paleta). */
-const HEADER_SIZE: number = 1078;
+const HEADER_SIZE: i32 = 1078;
 
 /** Número mágico ("BM"). */
-const HEADER_BM: number = 0x424D;
+const HEADER_BM: u16 = 0x424D;
 
 /** (*Offset*) Número mágico ("BM"). */
-const HEADER_MAGIC: number = 0;
+const HEADER_MAGIC: i32 = 0;
 
 /** (*Offset*) *Offset* dos ados da imagem. */
-const HEADER_DATA: number = 10;
+const HEADER_DATA: i32 = 10;
 
 /** (*Offset*) Tamanho do arquivo, em *bytes*. */
-const HEADER_FILESIZE: number = 2;
+const HEADER_FILESIZE: i32 = 2;
 
 /** (*Offset*) Largura do *bitmap*, em *pixels*. */
-const HEADER_WIDTH: number = 18;
+const HEADER_WIDTH: i32 = 18;
 
 /** (*Offset*) Altura do *bitmap*, em *pixels*. */
-const HEADER_HEIGHT: number = 22;
+const HEADER_HEIGHT: i32 = 22;
 
 /** (*Offset*) Formato de cores (*bits per pixel*). */
-const HEADER_COLOR_FORMAT: number = 28;
+const HEADER_COLOR_FORMAT: i32 = 28;
 
 /** (*Offset*) Formato de compressão. */
-const HEADER_COMPRESSION: number = 30;
+const HEADER_COMPRESSION: i32 = 30;
 
 /** Número de cores da paleta. */
-const PALETTE_SIZE: number = 256;
+const PALETTE_SIZE: i32 = 256;
 
 /** (*Offset*) Posição da paleta de cores. */
-const PALETTE_START: number = 54;
+const PALETTE_START: i32 = 54;
 
 /**
  * Cabeçalho padrão.
@@ -83,16 +83,16 @@ defaultHeader.set([
  */
 export class Color {
 	/** Canal de cor vermelho (*red*). */
-	public r: number;
+	public r: u8;
 
 	/** Canal de cor verde (*green*). */
-	public g: number;
+	public g: u8;
 
 	/** Canal de cor azul (*blue*). */
-	public b: number;
+	public b: u8;
 
 	/** Canal de transparência (*alpha*). */
-	public a: number;
+	public a: u8;
 
 	/**
 	 * Importa uma cor a partir de uma *string* hexadecimal.
@@ -115,7 +115,7 @@ export class Color {
 		const lowerValue: string = value.toLowerCase();
 
 		// Percorrer e coletar bytes...
-		for(let index: number = 0; index < bytes.length; index += 1) {
+		for(let index: i32 = 0; index < bytes.length; index += 1) {
 			const char: string = lowerValue.charAt(index + 1);
 
 			// Ignorar identificador "#"...
@@ -123,7 +123,7 @@ export class Color {
 				continue;
 			}
 
-			const charIndex: number = charset.indexOf(char);
+			const charIndex: i32 = charset.indexOf(char);
 			bytes[index] = charIndex >= 0? charIndex: 0;
 		}
 
@@ -143,7 +143,7 @@ export class Color {
 	 * @param b Canal de cor azul (*blue*).
 	 * @param a Canal de transparência (*alpha*).
 	 */
-	public constructor(r: number, g: number, b: number, a: number = 0) {
+	public constructor(r: u8, g: u8, b: u8, a: u8 = 0) {
 		this.r = r;
 		this.g = g;
 		this.b = b;
@@ -174,7 +174,7 @@ export class Color {
 	 * 
 	 * @returns {this}
 	 */
-	public setValues(r: number, g: number, b: number, a: number): this {
+	public setValues(r: u8, g: u8, b: u8, a: u8): this {
 		this.r = r;
 		this.g = g;
 		this.b = b;
@@ -241,13 +241,13 @@ export class Color {
  */
 export class Pixel {
 	/** Posição X. */
-	public x: number;
+	public x: i32;
 
 	/** Posição Y. */
-	public y: number;
+	public y: i32;
 
 	/** Índice equivalente à cor da paleta. */
-	public color: number;
+	public color: i32;
 
 	/**
 	 * @constructor
@@ -256,7 +256,7 @@ export class Pixel {
 	 * @param y Posição Y.
 	 * @param color Índice equivalente à cor da paleta.
 	 */
-	public constructor(x: number, y: number, color: number) {
+	public constructor(x: i32, y: i32, color: i32) {
 		this.x = x;
 		this.y = y;
 		this.color = color;
@@ -271,7 +271,7 @@ export class Pixel {
 	 * 
 	 * @returns {this}
 	 */
-	public setValues(x: number, y: number, color: number): this {
+	public setValues(x: i32, y: i32, color: i32): this {
 		this.x = x;
 		this.y = y;
 		this.color = color;
@@ -363,16 +363,16 @@ export interface PixelShader {
  */
 export interface Drawable {
 	/** Largura da imagem. */
-	width: number;
+	width: u16;
 
 	/** Altura da imagem. */
-	height: number;
+	height: u16;
 
 	/** Tamanho da área da imagem, em *pixels*. */
-	size: number;
+	size: u32;
 
 	/** Número de cores disponíveis na paleta. */
-	paletteSize: number;
+	paletteSize: u32;
 
 	/** Dados da imagem. */
 	data: Uint8Array;
@@ -385,7 +385,7 @@ export interface Drawable {
 	 * 
 	 * @returns {boolean}
 	 */
-	withinImage(x: number, y: number): boolean;
+	withinImage(x: i32, y: i32): boolean;
 
 	/**
 	 * Indica se um determinado índice de cor está dentro da paleta de cores.
@@ -394,7 +394,7 @@ export interface Drawable {
 	 * 
 	 * @returns {boolean}
 	 */
-	withinPalette(index: number): boolean;
+	withinPalette(index: i32): boolean;
 
 	/**
 	 * Define uma cor da paleta no índice especificado.
@@ -404,7 +404,7 @@ export interface Drawable {
 	 * 
 	 * @returns {boolean}
 	 */
-	setColor(index: number, color: Color): boolean;
+	setColor(index: i32, color: Color): boolean;
 
 	/**
 	 * Obtém uma cópia da cor da paleta no índice especificado.
@@ -414,7 +414,7 @@ export interface Drawable {
 	 * 
 	 * @returns {Color}
 	 */
-	getColor(index: number): Color;
+	getColor(index: i32): Color;
 
 	/**
 	 * Define uma nova paleta de cores.
@@ -441,7 +441,7 @@ export interface Drawable {
 	 * 
 	 * @returns {number}
 	 */
-	setPixel(x: number, y: number, primaryColor: number): boolean;
+	setPixel(x: i32, y: i32, primaryColor: i32): boolean;
 
 	/**
 	 * Define um *pixel* na posição especificada.
@@ -452,7 +452,7 @@ export interface Drawable {
 	 * 
 	 * @returns {boolean}
 	 */
-	getPixel(x: number, y: number): number;
+	getPixel(x: i32, y: i32): i32;
 
 	/**
 	 * Retorna uma cópia da cor da paleta equivalente a um
@@ -464,7 +464,7 @@ export interface Drawable {
 	 * 
 	 * @returns {Color}
 	 */
-	getPixelColor(x: number, y: number): Color;
+	getPixelColor(x: i32, y: i32): Color;
 
 	/**
 	 * Limpa todo o conteúdo da imagem.
@@ -473,7 +473,7 @@ export interface Drawable {
 	 * 
 	 * @returns {boolean}
 	 */
-	clearImage(primaryColor: number): boolean;
+	clearImage(primaryColor: i32): boolean;
 }
 
 //#endregion </drawable.ts>
@@ -487,16 +487,16 @@ export interface Drawable {
  */
 export class Bitmap implements Drawable {
 	/** Largura. */
-	private _width: number;
+	private _width: u16;
 
 	/** Altura. */
-	private _height: number;
+	private _height: u16;
 
 	/** Tamanho da área da imagem, em *pixels*. */
-	private _size: number;
+	private _size: u32;
 
 	/** Número de cores disponíveis na paleta. */
-	private _paletteSize: number;
+	private _paletteSize: u32;
 
 	/** Dados da imagem. */
 	private _data: Uint8Array;
@@ -519,22 +519,22 @@ export class Bitmap implements Drawable {
 		const fileView: DataView = new DataView(file.buffer);
 
 		/** (Número mágico ("BM"). */
-		const signature: number = fileView.getUint16(HEADER_MAGIC, false);
+		const signature: u16 = fileView.getUint16(HEADER_MAGIC, false);
 
 		/** *Offset* dos ados da imagem. */
-		const dataOffset: number = fileView.getUint32(HEADER_DATA, true);
+		const dataOffset: u32 = fileView.getUint32(HEADER_DATA, true);
 
 		/** Largura do *bitmap*, em *pixels*. */
-		const width: number = fileView.getUint32(HEADER_WIDTH, true);
+		const width: u16 = fileView.getUint32(HEADER_WIDTH, true) as u16;
 
 		/** Altura do *bitmap*, em *pixels*. */
-		const height: number = fileView.getUint32(HEADER_HEIGHT, true);
+		const height: u16 = fileView.getUint32(HEADER_HEIGHT, true) as u16;
 
 		/** Formato de cores (*bits per pixel*). */
-		const bitsPerPixel: number = fileView.getUint16(HEADER_COLOR_FORMAT, true);
+		const bitsPerPixel: u16 = fileView.getUint16(HEADER_COLOR_FORMAT, true);
 
 		/** Formato de compressão. */
-		const compression: number = fileView.getUint16(HEADER_COMPRESSION, true);
+		const compression: u16 = fileView.getUint16(HEADER_COMPRESSION, true);
 		
 		// Bitmaps são identificados pelo número mágico 0x424D ("BM").
 		// Formatos inválidos serão rejeitados.
@@ -581,7 +581,7 @@ export class Bitmap implements Drawable {
 	 * @param height Altura.
 	 * @param colors Cores.
 	 */
-	public constructor(width: number, height: number, colors: Color[] = []) {
+	public constructor(width: u16, height: u16, colors: Color[] = []) {
 		// Bitmaps devem ter um tamanho pelo menos de 1x1.
 		// Tamanhos inválidos serão rejeitados.
 		if(width <= 0 || height <= 0) {
@@ -589,7 +589,7 @@ export class Bitmap implements Drawable {
 		}
 
 		/** Tamanho da área da imagem, em *pixels*. */
-		const size: number = width * height;
+		const size: u32 = (width * height) as u32;
 
 		this._width = width;
 		this._height = height;
@@ -612,7 +612,6 @@ export class Bitmap implements Drawable {
 		this.setPalette(colors);
 	}
 
-	
 	/**
 	 * Exporta os dados da imagem para uma *array* de *bytes* no formato RGBA.
 	 * Este é o mesmo formato utilizado em elementos `<canvas>`.
@@ -621,15 +620,15 @@ export class Bitmap implements Drawable {
 	 * 
 	 * @returns {Uint8ClampedArray}
 	 */
-	public toImageData(mask: number = -1): Uint8ClampedArray {
+	public toImageData(mask: i32 = -1): Uint8ClampedArray {
 		/** Resultado a ser retornado. */
 		const result: Uint8ClampedArray = new Uint8ClampedArray(this._size * 4);
 
 		// Percorrer pixels da imagem...
-		for(let y: number = 0; y < this._height; y += 1) {
-			for(let x: number = 0; x < this._width; x += 1) {
+		for(let y: i32 = 0; y < (this._height as i32); y += 1) {
+			for(let x: i32 = 0; x < (this._width as i32); x += 1) {
 				/** *Pixel*. */
-				const pixel: number = this.getPixel(x, y);
+				const pixel: i32 = this.getPixel(x, y);
 
 				// Ignorar máscara de transparência...
 				if(pixel === mask) {
@@ -640,7 +639,7 @@ export class Bitmap implements Drawable {
 				const color: Color = this.getColor(pixel);
 
 				/** Índice a ser alterado no resultado. */
-				const index: number = ((this._width * y) + x) * 4;
+				const index: i32 = ((this._width * y) + x) * 4;
 
 				// Escrever cores...
 				//
@@ -657,19 +656,19 @@ export class Bitmap implements Drawable {
 		return result;
 	}
 
-	public get width(): number {
+	public get width(): u16 {
 		return this._width;
 	}
 
-	public get height(): number {
+	public get height(): u16 {
 		return this._height;
 	}
 
-	public get size(): number {
+	public get size(): u32 {
 		return this._size;
 	}
 
-	public get paletteSize(): number {
+	public get paletteSize(): u32 {
 		return this._paletteSize;
 	}
 
@@ -677,15 +676,15 @@ export class Bitmap implements Drawable {
 		return this._data;
 	}
 
-	public withinImage(x: number, y: number): boolean {
-		return x >= 0 && x < this._width && y >= 0 && y < this._height;
+	public withinImage(x: i32, y: i32): boolean {
+		return x >= 0 && x < (this._width as i32) && y >= 0 && y < (this._height as i32);
 	}
 
-	public withinPalette(index: number): boolean {
-		return index >= 0 && index < this._paletteSize;
+	public withinPalette(index: i32): boolean {
+		return index >= 0 && (index as u32) < this._paletteSize;
 	}
 
-	public setColor(index: number, color: Color): boolean {
+	public setColor(index: i32, color: Color): boolean {
 		// O índice deve estar entre o tamanho da paleta.
 		// Do contrário, nada será feito.
 		if(!this.withinPalette(index)) {
@@ -693,7 +692,7 @@ export class Bitmap implements Drawable {
 		}
 
 		/** *Offset* da paleta. */
-		const offset: number = PALETTE_START + (index * 4);
+		const offset: i32 = PALETTE_START + (index * 4);
 
 		// Escrever a nova cor...
 		this._data[offset] = color.b;
@@ -704,7 +703,7 @@ export class Bitmap implements Drawable {
 		return true;
 	}
 
-	public getColor(index: number): Color {
+	public getColor(index: i32): Color {
 		// O índice deve estar entre o tamanho da paleta.
 		// Do contrário, será retornada uma cor padrão.
 		if(!this.withinPalette(index)) {
@@ -712,7 +711,7 @@ export class Bitmap implements Drawable {
 		}
 
 		/** *Offset* da paleta. */
-		const offset: number = PALETTE_START + (index * 4);
+		const offset: i32 = PALETTE_START + (index * 4);
 
 		return new Color(
 			this._data[offset + 2],
@@ -726,7 +725,7 @@ export class Bitmap implements Drawable {
 		/** Resultado final. */
 		let result: boolean = true;
 
-		for(let index: number = 0; index < colors.length; index += 1) {
+		for(let index: i32 = 0; index < colors.length; index += 1) {
 			const color: Color = colors[index];
 			const colorResult: boolean = this.setColor(index, color);
 
@@ -736,7 +735,7 @@ export class Bitmap implements Drawable {
 			}
 
 			// Não exceder o tamanho da paleta...
-			if(index >= this._paletteSize) {
+			if(index as u32 >= this._paletteSize) {
 				break;
 			}
 		}
@@ -749,7 +748,7 @@ export class Bitmap implements Drawable {
 		const result: Color[] = [];
 
 		// Percorrer cores da paleta...
-		for(let index: number = 0; index < this._paletteSize; index += 1) {
+		for(let index: i32 = 0; index < (this._paletteSize as i32); index += 1) {
 			const color: Color = this.getColor(index);
 			result.push(color);
 		}
@@ -757,31 +756,25 @@ export class Bitmap implements Drawable {
 		return result;
 	}
 
-	public setPixel(x: number, y: number, primaryColor: number): boolean {
+	public setPixel(x: i32, y: i32, primaryColor: i32): boolean {
 		// A posição deve estar na área de desenho e
 		// o índice deve estar entre o tamanho da paleta.
 		// Do contrário, nada será feito.
 		if(!this.withinImage(x, y) || !this.withinPalette(primaryColor)) {
 			return false;
 		}
-		
-		/** Posição X, convertida para número inteiro. */
-		const px: number = x < 0? Math.floor(x): Math.ceil(x);
-
-		/** Posição Y, convertida para número inteiro. */
-		const py: number = y < 0? Math.floor(y): Math.ceil(y);
 
 		/** Posição Y, invertida. */
-		const iy: number = (this._height - 1) - py;
+		const iy: i32 = (this._height - 1) - y;
 
 		/** *Offset* do *pixel*. */
-		const offset: number = HEADER_SIZE + (this._width * iy) + px;
+		const offset: i32 = HEADER_SIZE + (this._width * iy) + x;
 
 		this._data[offset] = primaryColor;
 		return true;
 	}
 
-	public getPixel(x: number, y: number): number {
+	public getPixel(x: i32, y: i32): i32 {
 		// A posição deve estar na área de desenho.
 		// Do contrário, será retornado uma cor de paleta negativa.
 		if(!this.withinImage(x, y)) {
@@ -789,22 +782,22 @@ export class Bitmap implements Drawable {
 		}
 
 		/** Posição Y, invertida. */
-		const iy: number = (this._height - 1) - y;
+		const iy: i32 = (this._height - 1) - y;
 
 		/** *Offset* do *pixel*. */
-		const offset: number = HEADER_SIZE + (this._width * iy) + x;
+		const offset: i32 = HEADER_SIZE + (this._width * iy) + x;
 
 		return this._data[offset];
 	}
 
-	public getPixelColor(x: number, y: number): Color {
-		const index: number = this.getPixel(x, y);
+	public getPixelColor(x: i32, y: i32): Color {
+		const index: i32 = this.getPixel(x, y);
 		const color: Color =  this.getColor(index);
 
 		return color;
 	}
 
-	public clearImage(primaryColor: number): boolean {
+	public clearImage(primaryColor: i32): boolean {
 		this.data.fill(primaryColor, HEADER_SIZE);
 		return true;
 	}
@@ -847,7 +840,7 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public pixel(x: number, y: number, primaryColor: number, shaders: PixelShader[] = []): this {
+	public pixel(x: i32, y: i32, primaryColor: i32, shaders: PixelShader[] = []): this {
 		/** *Pixel* original. */
 		let previous: Pixel = new Pixel(x, y, this._drawable.getPixel(x, y));
 
@@ -855,7 +848,7 @@ export class Surface<T extends Drawable> {
 		let next: Pixel = new Pixel(x, y, primaryColor);
 
 		// Aplicar pixel shaders...
-		for(let index: number = 0; index < shaders.length; index += 1) {
+		for(let index: i32 = 0; index < shaders.length; index += 1) {
 			const shader: PixelShader = shaders[index];
 			const result: Pixel = shader.pixelShader(
 				previous.createCopy(), 
@@ -878,7 +871,7 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public clear(primaryColor: number): this {
+	public clear(primaryColor: i32): this {
 		this._drawable.clearImage(primaryColor);
 		return this;
 	}
@@ -894,9 +887,9 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public hline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[] = []): this {
+	public hline(x: i32, y: i32, size: i32, primaryColor: i32, shaders: PixelShader[] = []): this {
 		// Desenhar pixels...
-		for(let index: number = 0; index < size; index += 1) {
+		for(let index: i32 = 0; index < size; index += 1) {
 			this.pixel(x + index, y, primaryColor, shaders);
 		}
 
@@ -914,9 +907,9 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public vline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[] = []): this {
+	public vline(x: i32, y: i32, size: i32, primaryColor: i32, shaders: PixelShader[] = []): this {
 		// Desenhar pixels...
-		for(let index: number = 0; index < size; index += 1) {
+		for(let index: i32 = 0; index < size; index += 1) {
 			this.pixel(x, y + index, primaryColor, shaders);
 		}
 
@@ -935,7 +928,7 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public rectb(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[] = []): this {
+	public rectb(x: i32, y: i32, width: i32, height: i32, primaryColor: i32, shaders: PixelShader[] = []): this {
 		this.hline(x, y, width, primaryColor, shaders);
 		this.hline(x, y + height, width, primaryColor, shaders);
 		this.vline(x, y + 1, height - 1, primaryColor, shaders);
@@ -956,9 +949,9 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public rectf(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[] = []): this {
+	public rectf(x: i32, y: i32, width: i32, height: i32, primaryColor: i32, shaders: PixelShader[] = []): this {
 		// Desenhar linhas...
-		for(let index: number = 0; index < height; index += 1) {
+		for(let index: i32 = 0; index < height; index += 1) {
 			this.hline(x, y + index, width, primaryColor, shaders);
 		}
 
@@ -978,7 +971,7 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public rect(x: number, y: number, width: number, height: number, primaryColor: number, secondaryColor: number, shaders: PixelShader[] = []): this {
+	public rect(x: i32, y: i32, width: i32, height: i32, primaryColor: i32, secondaryColor: i32, shaders: PixelShader[] = []): this {
 		this.rectb(x, y, width, height, primaryColor, shaders);
 		this.rectf(x + 1, y + 1, width - 1, height - 1, secondaryColor, shaders);
 
@@ -1002,7 +995,7 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public blitsub(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+	public blitsub(drawable: Drawable, x: i32, y: i32, cx: i32, cy: i32, width: i32, height: i32, scaleX: i32 = 1, scaleY: i32 = 1, rotation: i32 = 0, shaders: PixelShader[] = []): this {
 		// A escala precisa ser um valor diferente de zero para funcionar.
 		// Do contrário, a operação será encerrada.
 		if(scaleX === 0 || scaleY === 0) {
@@ -1015,43 +1008,33 @@ export class Surface<T extends Drawable> {
 		/** Inverter verticalmente. */
 		const flipped: boolean = scaleY < 0? true: false;
 
-		/** *Offset* horizontal do *pixel*. */
-		const fx: number = mirrored?
-			Math.floor(scaleX)
-		: Math.ceil(scaleX);
-
-		/** *Offset* vertical do *pixel*. */
-		const fy: number = flipped?
-			Math.floor(scaleY)
-		: Math.ceil(scaleY);
-
 		/** Largura do *pixel*. */
-		const pw: number = Math.abs(fx);
+		const pw: i32 = scaleX < 0? (scaleX * (-1)): scaleX;
 
 		/** Altura do *pixel*. */
-		const ph: number = Math.abs(fy);
+		const ph: i32 = scaleY < 0? (scaleY * (-1)): scaleY;
 
 		// Dependendo da escala vertical, a coluna será redesenhada
 		// várias veze sob offsets diferentes...
-		for(let pyi: number = 0; pyi < ph; pyi += 1) {
+		for(let pyi: i32 = 0; pyi < ph; pyi += 1) {
 			
 			// Percorrer linhas da imagem...
-			for(let dy: number = 0; dy < height; dy += 1) {
+			for(let dy: i32 = 0; dy < height; dy += 1) {
 
 				// Dependendo da escala horizontal, a linha será redesenhada 
 				// várias vezes sob offsets diferentes...
-				for(let pxi: number = 0; pxi < pw; pxi += 1) {
+				for(let pxi: i32 = 0; pxi < pw; pxi += 1) {
 					// Percorrer colunas da imagem...
-					for(let dx: number = 0; dx < width; dx += 1) {
-						const pixel: number = drawable.getPixel(dx + cx, dy + cy);
+					for(let dx: i32 = 0; dx < width; dx += 1) {
+						const pixel: i32 = drawable.getPixel(dx + cx, dy + cy);
 
 						/** Posição X calculada do *pixel*. */
-						const px: number = mirrored?
+						const px: i32 = mirrored?
 							(width - 1) - (x + dx)
 						: x + dx;
 
 						/** Posição Y calculada do *pixel*. */
-						const py: number = flipped?
+						const py: i32 = flipped?
 							(height - 1) - (y + dy)
 						: y + dy;
 
@@ -1083,7 +1066,7 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public blit(drawable: Drawable, x: number, y: number, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+	public blit(drawable: Drawable, x: i32, y: i32, scaleX: i32 = 1, scaleY: i32 = 1, rotation: i32 = 0, shaders: PixelShader[] = []): this {
 		this.blitsub(drawable, x, y, 0, 0, drawable.width, drawable.height, scaleX, scaleY, rotation, shaders);
 		return this;
 	}
@@ -1110,15 +1093,15 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @returns {this}
 	 */
-	public text(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number = 0, lineHeight: number = 0, scaleX: number = 1, scaleY: number = 1, rotation: number = 0, shaders: PixelShader[] = []): this {
+	public text(drawable: Drawable, x: i32, y: i32, cx: i32, cy: i32, width: i32, height: i32, charset: string, charColumns: i32, text: string, letterSpacing: i32 = 0, lineHeight: i32 = 0, scaleX: i32 = 1, scaleY: i32 = 1, rotation: i32 = 0, shaders: PixelShader[] = []): this {
 		// Posições do texto.
-		let line: number = 0;
-		let column: number = 0;
+		let line: i32 = 0;
+		let column: i32 = 0;
 
 		// Percorrer caracteres do texto...
-		for(let index: number = 0; index < text.length; index += 1) {
+		for(let index: i32 = 0; index < text.length; index += 1) {
 			const char: string = text.charAt(index);
-			const charIndex: number = charset.indexOf(char);
+			const charIndex: i32 = charset.indexOf(char);
 
 			// Quebrar linhas...
 			if(char === "\n") {
@@ -1134,14 +1117,14 @@ export class Surface<T extends Drawable> {
 			}
 
 			// Obter posição do caractere na imagem...
-			const charRow: number = Math.floor(charIndex / charColumns) % charColumns;
-			const charColumn: number = charIndex % charColumns;
+			const charRow: i32 = (charIndex / charColumns) % charColumns;
+			const charColumn: i32 = charIndex % charColumns;
 
 			// Calcular valores de recorte...
-			const charX: number = x + (column * width) + (letterSpacing * column);
-			const charY: number = y + (line * height) + (lineHeight * line);
-			const charCutX: number = cx + (charColumn *  width);
-			const charCutY: number = cy + (charRow * height);
+			const charX: i32 = x + (column * width) + (letterSpacing * column);
+			const charY: i32 = y + (line * height) + (lineHeight * line);
+			const charCutX: i32 = cx + (charColumn *  width);
+			const charCutY: i32 = cy + (charRow * height);
 
 			// Desenhar caractere...
 			this.blitsub(

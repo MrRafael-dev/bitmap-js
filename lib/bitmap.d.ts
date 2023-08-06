@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.6
+ * @version 1.0.7
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -181,23 +181,6 @@ export interface PixelShader {
     pixelShader(previous: Pixel, next: Pixel): Pixel;
 }
 /**
- * @class MaskShader @implements PixelShader
- *
- * @description
- * *Pixel shader* usado para aplicar máscara de transparência.
- */
-export declare class MaskShader implements PixelShader {
-    /** Máscara de transparência. */
-    mask: number;
-    /**
-     * @constructor
-     *
-     * @param mask Máscara de transparência.
-     */
-    constructor(mask?: number);
-    pixelShader(previous: Pixel, next: Pixel): Pixel;
-}
-/**
  * @interface Drawable
  *
  * @description
@@ -340,16 +323,6 @@ export declare class Bitmap implements Drawable {
      * @param colors Cores.
      */
     constructor(width: number, height: number, colors?: Color[]);
-    /** Largura. */
-    get width(): number;
-    /** Altura. */
-    get height(): number;
-    /** Tamanho da área da imagem, em *pixels*. */
-    get size(): number;
-    /** Número de cores disponíveis na paleta. */
-    get paletteSize(): number;
-    /** Dados da imagem. */
-    get data(): Uint8Array;
     /**
      * Exporta os dados da imagem para uma *array* de *bytes* no formato RGBA.
      * Este é o mesmo formato utilizado em elementos `<canvas>`.
@@ -359,93 +332,20 @@ export declare class Bitmap implements Drawable {
      * @returns {Uint8ClampedArray}
      */
     toImageData(mask?: number): Uint8ClampedArray;
-    /**
-     * Indica se uma determinada posição está dentro da área de desenho.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     *
-     * @returns {boolean}
-     */
+    get width(): number;
+    get height(): number;
+    get size(): number;
+    get paletteSize(): number;
+    get data(): Uint8Array;
     withinImage(x: number, y: number): boolean;
-    /**
-     * Indica se um determinado índice de cor está dentro da paleta de cores.
-     *
-     * @param index Índice da paleta.
-     *
-     * @returns {boolean}
-     */
     withinPalette(index: number): boolean;
-    /**
-     * Define uma cor da paleta no índice especificado.
-     *
-     * @param index Índice da paleta.
-     * @param color Cor.
-     *
-     * @returns {boolean}
-     */
     setColor(index: number, color: Color): boolean;
-    /**
-     * Obtém uma cópia da cor da paleta no índice especificado.
-     * Retorna uma cor `#000000` quando não existe.
-     *
-     * @param index Índice da paleta.
-     *
-     * @returns {Color}
-     */
     getColor(index: number): Color;
-    /**
-     * Define uma nova paleta de cores.
-     *
-     * @param colors Cores.
-     *
-     * @returns {boolean}
-     */
     setPalette(colors: Color[]): boolean;
-    /**
-     * Obtém uma cópia da paleta de cores.
-     *
-     * @returns {Color[]}
-     */
     getPalette(): Color[];
-    /**
-     * Define um *pixel* na posição especificada.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param primaryColor Cor da paleta (primária).
-     *
-     * @returns {boolean}
-     */
     setPixel(x: number, y: number, primaryColor: number): boolean;
-    /**
-     * Obtém um *pixel* na posição especificada.
-     * Retorna a cor de paleta `-1` quando não existe.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     *
-     * @returns {number}
-     */
     getPixel(x: number, y: number): number;
-    /**
-     * Retorna uma cópia da cor da paleta equivalente a um
-     * *pixel* escolhido na posição especificada.
-     * Retorna uma cor `#000000` quando não existe.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     *
-     * @returns {Color}
-     */
     getPixelColor(x: number, y: number): Color;
-    /**
-     * Limpa todo o conteúdo da imagem.
-     *
-     * @param primaryColor Cor da paleta (primária).
-     *
-     * @returns {boolean}
-     */
     clearImage(primaryColor: number): boolean;
 }
 /**
