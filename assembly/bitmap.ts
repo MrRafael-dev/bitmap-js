@@ -1008,11 +1008,21 @@ export class Surface<T extends Drawable> {
 		/** Inverter verticalmente. */
 		const flipped: boolean = scaleY < 0? true: false;
 
+		/** *Offset* horizontal do *pixel*. */
+		const fx: f64 = mirrored?
+			Math.floor(scaleX)
+		: Math.ceil(scaleX);
+
+		/** *Offset* vertical do *pixel*. */
+		const fy: f64 = flipped?
+			Math.floor(scaleY)
+		: Math.ceil(scaleY);
+
 		/** Largura do *pixel*. */
-		const pw: i32 = scaleX < 0? (scaleX * (-1)): scaleX;
+		const pw: i32 = Math.abs(fx) as i32;
 
 		/** Altura do *pixel*. */
-		const ph: i32 = scaleY < 0? (scaleY * (-1)): scaleY;
+		const ph: i32 = Math.abs(fy) as i32;
 
 		// Dependendo da escala vertical, a coluna será redesenhada
 		// várias veze sob offsets diferentes...
