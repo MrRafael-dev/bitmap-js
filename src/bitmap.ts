@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.5
+ * @version 1.0.6
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -74,286 +74,6 @@ const defaultHeader: Uint8Array = new Uint8Array([
 
 
 //#endregion </constants.ts>
-//#region <base64.ts>
-/** Tabela de caracteres da codificação *Base64*. */
-const base64Table: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-/**
- * @class Base64Encoder
- * 
- * @description
- * Codificador de *Base64*.
- */
-export class Base64Encoder {
-	/**
-	 * Retorna um segmento de caracteres formado pelos *bytes* especiifcados.
-	 * 
-	 * @param byte1 Primeiro *byte*. 
-	 * @param byte2 Segundo *byte*. 
-	 * @param byte3 Terceiro *byte*. 
-	 * @param padding Espaçamento com `=`. (de 0 a 2)
-	 * 
-	 * @returns {string}
-	 */
-	private getSegments(byte1: number, byte2: number, byte3: number, padding: number = 0): string {
-		/** Índice do primeiro caractere. */
-		const charIndex1: number = 
-			(((byte1 >>> 7) & 1) * 32)
-		+ (((byte1 >>> 6) & 1) * 16)
-		+ (((byte1 >>> 5) & 1) * 8)
-		+ (((byte1 >>> 4) & 1) * 4)
-		+ (((byte1 >>> 3) & 1) * 2)
-		+ ((byte1 >>> 2) & 1);
-
-		/** Índice do segundo caractere. */
-		const charIndex2: number =
-			(((byte1 >>> 1) & 1) * 32)
-		+ (((byte1 >>> 0) & 1) * 16)
-		+ (((byte2 >>> 7) & 1) * 8)
-		+ (((byte2 >>> 6) & 1) * 4)
-		+ (((byte2 >>> 5) & 1) * 2)
-		+ ((byte2 >>> 4) & 1);
-
-		/** Índice do terceiro caractere. */
-		const charIndex3: number =
-			(((byte2 >>> 3) & 1) * 32)
-		+ (((byte2 >>> 2) & 1) * 16)
-		+ (((byte2 >>> 1) & 1) * 8)
-		+ (((byte2 >>> 0) & 1) * 4)
-		+ (((byte3 >>> 7) & 1) * 2)
-		+ ((byte3 >>> 6) & 1);
-
-		/** Índice do quarto caractere. */
-		const charIndex4: number =
-			(((byte3 >>> 5) & 1) * 32)
-		+ (((byte3 >>> 4) & 1) * 16)
-		+ (((byte3 >>> 3) & 1) * 8)
-		+ (((byte3 >>> 2) & 1) * 4)
-		+ (((byte3 >>> 1) & 1) * 2)
-		+ ((byte3 >>> 0) & 1);
-
-		/** Primeiro caractere. */
-		const char1: string = base64Table.charAt(charIndex1);
-
-		/** Segundo caractere. */
-		const char2: string = base64Table.charAt(charIndex2);
-
-		/** Terceiro caractere. (`=` quando `padding` é maior ou igual a 1) */
-		const char3: string = padding > 1? "=": base64Table.charAt(charIndex3);
-
-		/** Terceiro caractere. (`=` quando `padding` é maior ou igual a 2) */
-		const char4: string = padding > 0? "=": base64Table.charAt(charIndex4);
-
-		return `${char1}${char2}${char3}${char4}`;
-	}
-
-	/**
-	 * Codifica uma *array* de *bytes* para um texto em *Base64*.
-	 * 
-	 * @param data *Array* de *bytes*.
-	 * 
-	 * @returns {string}
-	 */
-	public encode(data: Uint8Array): string {		
-		/** Tamanho esperado do resultado, em caracteres. */
-		const size: number = Math.ceil(data.byteLength / 3) * 4;
-		
-		/** *Cache* para os segmentos de caracteres. */
-		const segmentCache: string[] = [];
-
-		/** *Cache* temporário. */
-		const cache: Uint8Array = new Uint8Array(3);
-
-		/** Índice de leitura para o *cache* temporário. */
-		let cacheIndex: number = 0;
-
-		// Percorrer bytes, em chunks...
-		for(let index: number = 0; index < data.byteLength; index += 1) {
-			const byte: number = data[index];
-
-			// Salvar bytes até preencher todo o cache:
-			cache[cacheIndex] = byte;
-			cacheIndex += 1;
-
-			// Segmentar cache...
-			if(cacheIndex === cache.byteLength) {
-				const byte1: number = cache[0];
-				const byte2: number = cache[1];
-				const byte3: number = cache[2];
-
-				segmentCache.push(this.getSegments(byte1, byte2, byte3));
-				cache.fill(0);
-				cacheIndex = 0;
-			}
-		}
-
-		// Segmentar o que sobrar do cache...
-		if(cacheIndex > 0) {
-			const byte1: number = cache[0];
-			const byte2: number = cache[1];
-			const byte3: number = cache[2];
-			const padding: number = 3 - cacheIndex;
-			
-			segmentCache.push(this.getSegments(byte1, byte2, byte3, padding));
-		}
-
-		return segmentCache.join("");
-	}
-}
-
-/**
- * @class Base64Encoder
- * 
- * @description
- * Decodificador de *Base64*.
- */
-export class Base64Decoder {
-	/**
-	 * Restaura e retorna um *byte* formado por um segmento de caracteres.
-	 * 
-	 * @param charIndex1 Índice do primeiro caractere.
-	 * @param charIndex2 Índice do segundo caractere.
-	 * @param charIndex3 Índice do terceiro caractere.
-	 * @param charIndex4 Índice do quarto caractere.
-	 * 
-	 * @returns {Uint8Array}
-	 */
-	private restoreSegment(charIndex1: number, charIndex2: number, charIndex3: number, charIndex4: number): Uint8Array {		
-		/** Índice do primeiro *byte*. */
-		const byte1: number = 
-			(((charIndex1 >>> 5) & 1) * 128)
-		+ (((charIndex1 >>> 4) & 1) * 64)
-		+ (((charIndex1 >>> 3) & 1) * 32)
-		+ (((charIndex1 >>> 2) & 1) * 16)
-		+ (((charIndex1 >>> 1) & 1) * 8)
-		+ (((charIndex1 >>> 0) & 1) * 4)
-		+ (((charIndex2 >>> 5) & 1) * 2)
-		+ ((charIndex2 >>> 4) & 1);
-
-		/** Índice do segundo *byte*. */
-		const byte2: number = 
-			(((charIndex2 >>> 3) & 1) * 128)
-		+ (((charIndex2 >>> 2) & 1) * 64)
-		+ (((charIndex2 >>> 1) & 1) * 32)
-		+ (((charIndex2 >>> 0) & 1) * 16)
-		+ (((charIndex3 >>> 5) & 1) * 8)
-		+ (((charIndex3 >>> 4) & 1) * 4)
-		+ (((charIndex3 >>> 3) & 1) * 2)
-		+ ((charIndex3 >>> 2) & 1);
-
-		/** Índice do terceiro *byte*. */
-		const byte3: number = 
-			(((charIndex3 >>> 1) & 1) * 128)
-		+ (((charIndex3 >>> 0) & 1) * 64)
-		+ (((charIndex4 >>> 5) & 1) * 32)
-		+ (((charIndex4 >>> 4) & 1) * 16)
-		+ (((charIndex4 >>> 3) & 1) * 8)
-		+ (((charIndex4 >>> 2) & 1) * 4)
-		+ (((charIndex4 >>> 1) & 1) * 2)
-		+ ((charIndex4 >>> 0) & 1);
-
-		return new Uint8Array([byte1, byte2, byte3]);
-	}
-
-	/**
-	 * Decodifica um texto em *Base64* para uma *array* de *bytes*.
-	 * 
-	 * @param text Texto em *Base64*.
-	 */
-	public decode(text: string): Uint8Array {
-		/** Tamanho esperado do resultado, em *bytes*. */
-		let size: number = ((text.length / 4) * 3);
-
-		/** Último caractere. */
-		const lastChar: string = text.charAt(text.length - 1);
-
-		/** Penúltimo caractere. */
-		const penultChar: string = text.charAt(text.length - 2);
-
-		// Descontar tamanho quando o último caractere for de espaçamento...
-		if(lastChar === "=") {
-			size -= 1;
-		}
-
-		// Descontar tamanho quando o penúltimo caractere for de espaçamento...
-		if(penultChar === "=") {
-			size -= 1;
-		}
-
-		/** Resultado a ser retornado. */
-		const result: Uint8Array = new Uint8Array(size);
-
-		/** *Cache* temporário. */
-		const cache: Uint8Array = new Uint8Array(3);
-
-		/** Índice de escrita para o resultado. */
-		let resultIndex: number = 0;
-
-		/** Índice de leitura para o *cache* temporário. */
-		let cacheIndex: number = 0;
-
-		// Percorrer caracteres...
-		for(let index: number = 0; index < text.length; index += 1) {
-			const char: string = text.charAt(index);
-			const charIndex: number = base64Table.indexOf(char);
-
-			// Encerrar operação quando alcançar um caractere de espaçamento:
-			if(char === "=") {
-				const charIndex1: number = cache[0];
-				const charIndex2: number = cache[1];
-				const charIndex3: number = cache[2];
-				const charIndex4: number = cache[3];
-
-				// Obter segmento (dividido)...
-				const segment: Uint8Array = this.restoreSegment(
-					charIndex1, 
-					charIndex2,
-					charIndex3,
-					charIndex4
-				).slice(0, cacheIndex - 1);
-				
-				result.set(segment, resultIndex);
-				break;
-			}
-			
-			// Textos codificados em Base64 possuem um set de caracteres
-			// bem específico, e podem ter até no máximo dois espaçamentos
-			// representados pelo caractere "=".
-			else if(charIndex < 0) {
-				throw new Error(`Invalid character at index ${index}.`);
-			}
-
-			// Salvar índices dos caracteres até preencher todo o cache:
-			cache[cacheIndex] = charIndex;
-			cacheIndex += 1;
-
-			// Segmentar cache...
-			if(cacheIndex === cache.byteLength) {
-				const charIndex1: number = cache[0];
-				const charIndex2: number = cache[1];
-				const charIndex3: number = cache[2];
-				const charIndex4: number = cache[3];
-				
-				// Obter segmento (completo):
-				const segment: Uint8Array = this.restoreSegment(
-					charIndex1, 
-					charIndex2,
-					charIndex3,
-					charIndex4
-				);
-				
-				result.set(segment, resultIndex);
-				cache.fill(0);
-				resultIndex += 3;
-				cacheIndex = 0;
-			}
-		}
-
-		return result;
-	}
-}
-
-//#endregion </base64.ts>
 //#region <color.ts>
 /**
  * @class Color
@@ -443,6 +163,69 @@ export class Color {
 
 		return `${r}${g}${b}${a}`;
 	}
+
+	/**
+	 * Redefine todos os valores desta instância.
+	 * 
+	 * @param r Canal de cor vermelho (*red*).
+	 * @param g Canal de cor verde (*green*).
+	 * @param b Canal de cor azul (*blue*).
+	 * @param a Canal de transparência (*alpha*).
+	 * 
+	 * @returns {this}
+	 */
+	public setValues(r: number, g: number, b: number, a: number): this {
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
+
+		return this;
+	}
+
+	/**
+	 * Limpa todos os valores desta instância, redefinindo suas
+	 * propriedades para valores considerados vazios.
+	 * 
+	 * @returns {this}
+	 */
+	public reset(): this {
+		this.setValues(0, 0, 0, 0);
+		return this;
+	}
+
+	/**
+	 * Copia todos os valores desta instância para outra.
+	 * 
+	 * @param instance Instância.
+	 * 
+	 * @returns {this}
+	 */
+	public copyTo(instance: Color): this {
+		instance.setValues(this.r, this.g, this.b, this.a);
+		return this;
+	}
+
+	/**
+	 * Copia todos os valores de outra instância para esta.
+	 * 
+	 * @param instance Instância.
+	 * 
+	 * @returns {this}
+	 */
+	public copyFrom(instance: Color): this {
+		this.setValues(instance.r, instance.g, instance.b, instance.a);
+		return this;
+	}
+
+	/**
+	 * Cria uma cópia desta instância.
+	 * 
+	 * @returns {Color}
+	 */
+	public createCopy(): Color {
+		return new Color(this.r, this.g, this.b, this.a);
+	}
 }
 
 //#endregion </color.ts>
@@ -488,17 +271,17 @@ export class Pixel {
 	 * 
 	 * @returns {this}
 	 */
-	public setValues(x: number | null, y: number | null, color: number | null): this {
-		this.x = x === null? this.x: x;
-		this.y = y === null? this.y: y;
-		this.color = color === null? this.color: color;
+	public setValues(x: number, y: number, color: number): this {
+		this.x = x;
+		this.y = y;
+		this.color = color;
 
 		return this;
 	}
 
 	/**
-	 * Limpa todos os valores desta instância, redefinindo a posição
-	 * para `0` e o índice equivalente à cor da paleta para `-1`.
+	 * Limpa todos os valores desta instância, redefinindo suas
+	 * propriedades para valores considerados vazios.
 	 * 
 	 * @returns {this}
 	 */
@@ -510,24 +293,24 @@ export class Pixel {
 	/**
 	 * Copia todos os valores desta instância para outra.
 	 * 
-	 * @param pixel *Pixel*.
+	 * @param instance Instância.
 	 * 
 	 * @returns {this}
 	 */
-	public copyTo(pixel: Pixel): this {
-		pixel.setValues(this.x, this.y, this.color);
+	public copyTo(instance: Pixel): this {
+		instance.setValues(this.x, this.y, this.color);
 		return this;
 	}
 
 	/**
 	 * Copia todos os valores de outra instância para esta.
 	 * 
-	 * @param pixel *Pixel*.
+	 * @param instance Instância.
 	 * 
 	 * @returns {this}
 	 */
-	public copyFrom(pixel: Pixel): this {
-		this.setValues(pixel.x, pixel.y, pixel.color);
+	public copyFrom(instance: Pixel): this {
+		this.setValues(instance.x, instance.y, instance.color);
 		return this;
 	}
 
@@ -617,6 +400,9 @@ export interface Drawable {
 
 	/** Tamanho da área da imagem, em *pixels*. */
 	size: number;
+
+	/** Número de cores disponíveis na paleta. */
+	paletteSize: number;
 
 	/** Dados da imagem. */
 	data: Uint8Array;
@@ -723,7 +509,7 @@ export interface Drawable {
 //#endregion </drawable.ts>
 //#region <bitmap.ts>
 /**
- * @class Bitmap
+ * @class Bitmap @implements Drawable
  * 
  * @description
  * Representa um *bitmap* descomprimido com
@@ -738,6 +524,9 @@ export class Bitmap implements Drawable {
 
 	/** Tamanho da área da imagem, em *pixels*. */
 	private _size: number;
+
+	/** Número de cores disponíveis na paleta. */
+	private _paletteSize: number;
 
 	/** Dados da imagem. */
 	private _data: Uint8Array;
@@ -832,6 +621,7 @@ export class Bitmap implements Drawable {
 		this._width = width;
 		this._height = height;
 		this._size = this._width * this._height;
+		this._paletteSize = PALETTE_SIZE;
 		this._data = new Uint8Array(HEADER_SIZE + this._size);
 
 		/** Visualizador de dados da imagem. */
@@ -862,6 +652,11 @@ export class Bitmap implements Drawable {
 	/** Tamanho da área da imagem, em *pixels*. */
 	public get size(): number {
 		return this._size;
+	}
+
+	/** Número de cores disponíveis na paleta. */
+	public get paletteSize(): number {
+		return this._paletteSize;
 	}
 
 	/** Dados da imagem. */
@@ -933,7 +728,7 @@ export class Bitmap implements Drawable {
 	 * @returns {boolean}
 	 */
 	public withinPalette(index: number): boolean {
-		return index >= 0 && index < PALETTE_SIZE;
+		return index >= 0 && index < this._paletteSize;
 	}
 
 	/**
@@ -1010,7 +805,7 @@ export class Bitmap implements Drawable {
 			}
 
 			// Não exceder o tamanho da paleta...
-			if(index >= PALETTE_SIZE) {
+			if(index >= this._paletteSize) {
 				break;
 			}
 		}
@@ -1028,7 +823,7 @@ export class Bitmap implements Drawable {
 		const result: Color[] = [];
 
 		// Percorrer cores da paleta...
-		for(let index: number = 0; index < PALETTE_SIZE; index += 1) {
+		for(let index: number = 0; index < this._paletteSize; index += 1) {
 			const color: Color = this.getColor(index);
 			result.push(color);
 		}

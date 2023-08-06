@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.5
+ * @version 1.0.6
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -13,58 +13,6 @@
  * Apenas *bitmaps* descomprimido com uma paleta
  * de 256 cores (formato *8bpp*) são suportados.
  */
-/**
- * @class Base64Encoder
- *
- * @description
- * Codificador de *Base64*.
- */
-export declare class Base64Encoder {
-    /**
-     * Retorna um segmento de caracteres formado pelos *bytes* especiifcados.
-     *
-     * @param byte1 Primeiro *byte*.
-     * @param byte2 Segundo *byte*.
-     * @param byte3 Terceiro *byte*.
-     * @param padding Espaçamento com `=`. (de 0 a 2)
-     *
-     * @returns {string}
-     */
-    private getSegments;
-    /**
-     * Codifica uma *array* de *bytes* para um texto em *Base64*.
-     *
-     * @param data *Array* de *bytes*.
-     *
-     * @returns {string}
-     */
-    encode(data: Uint8Array): string;
-}
-/**
- * @class Base64Encoder
- *
- * @description
- * Decodificador de *Base64*.
- */
-export declare class Base64Decoder {
-    /**
-     * Restaura e retorna um *byte* formado por um segmento de caracteres.
-     *
-     * @param charIndex1 Índice do primeiro caractere.
-     * @param charIndex2 Índice do segundo caractere.
-     * @param charIndex3 Índice do terceiro caractere.
-     * @param charIndex4 Índice do quarto caractere.
-     *
-     * @returns {Uint8Array}
-     */
-    private restoreSegment;
-    /**
-     * Decodifica um texto em *Base64* para uma *array* de *bytes*.
-     *
-     * @param text Texto em *Base64*.
-     */
-    decode(text: string): Uint8Array;
-}
 /**
  * @class Color
  *
@@ -102,6 +50,46 @@ export declare class Color {
      * @returns {string}
      */
     toHexString(): string;
+    /**
+     * Redefine todos os valores desta instância.
+     *
+     * @param r Canal de cor vermelho (*red*).
+     * @param g Canal de cor verde (*green*).
+     * @param b Canal de cor azul (*blue*).
+     * @param a Canal de transparência (*alpha*).
+     *
+     * @returns {this}
+     */
+    setValues(r: number, g: number, b: number, a: number): this;
+    /**
+     * Limpa todos os valores desta instância, redefinindo suas
+     * propriedades para valores considerados vazios.
+     *
+     * @returns {this}
+     */
+    reset(): this;
+    /**
+     * Copia todos os valores desta instância para outra.
+     *
+     * @param instance Instância.
+     *
+     * @returns {this}
+     */
+    copyTo(instance: Color): this;
+    /**
+     * Copia todos os valores de outra instância para esta.
+     *
+     * @param instance Instância.
+     *
+     * @returns {this}
+     */
+    copyFrom(instance: Color): this;
+    /**
+     * Cria uma cópia desta instância.
+     *
+     * @returns {Color}
+     */
+    createCopy(): Color;
 }
 /**
  * @class Pixel
@@ -136,10 +124,10 @@ export declare class Pixel {
      *
      * @returns {this}
      */
-    setValues(x: number | null, y: number | null, color: number | null): this;
+    setValues(x: number, y: number, color: number): this;
     /**
-     * Limpa todos os valores desta instância, redefinindo a posição
-     * para `0` e o índice equivalente à cor da paleta para `-1`.
+     * Limpa todos os valores desta instância, redefinindo suas
+     * propriedades para valores considerados vazios.
      *
      * @returns {this}
      */
@@ -147,19 +135,19 @@ export declare class Pixel {
     /**
      * Copia todos os valores desta instância para outra.
      *
-     * @param pixel *Pixel*.
+     * @param instance Instância.
      *
      * @returns {this}
      */
-    copyTo(pixel: Pixel): this;
+    copyTo(instance: Pixel): this;
     /**
      * Copia todos os valores de outra instância para esta.
      *
-     * @param pixel *Pixel*.
+     * @param instance Instância.
      *
      * @returns {this}
      */
-    copyFrom(pixel: Pixel): this;
+    copyFrom(instance: Pixel): this;
     /**
      * Cria uma cópia desta instância.
      *
@@ -225,6 +213,8 @@ export interface Drawable {
     height: number;
     /** Tamanho da área da imagem, em *pixels*. */
     size: number;
+    /** Número de cores disponíveis na paleta. */
+    paletteSize: number;
     /** Dados da imagem. */
     data: Uint8Array;
     /**
@@ -317,7 +307,7 @@ export interface Drawable {
     clearImage(primaryColor: number): boolean;
 }
 /**
- * @class Bitmap
+ * @class Bitmap @implements Drawable
  *
  * @description
  * Representa um *bitmap* descomprimido com
@@ -330,6 +320,8 @@ export declare class Bitmap implements Drawable {
     private _height;
     /** Tamanho da área da imagem, em *pixels*. */
     private _size;
+    /** Número de cores disponíveis na paleta. */
+    private _paletteSize;
     /** Dados da imagem. */
     private _data;
     /**
@@ -354,6 +346,8 @@ export declare class Bitmap implements Drawable {
     get height(): number;
     /** Tamanho da área da imagem, em *pixels*. */
     get size(): number;
+    /** Número de cores disponíveis na paleta. */
+    get paletteSize(): number;
     /** Dados da imagem. */
     get data(): Uint8Array;
     /**
