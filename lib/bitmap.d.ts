@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.7
+ * @version 1.0.9
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -194,71 +194,8 @@ export interface Drawable {
     width: number;
     /** Altura da imagem. */
     height: number;
-    /** Tamanho da área da imagem, em *pixels*. */
-    size: number;
-    /** Número de cores disponíveis na paleta. */
-    paletteSize: number;
     /** Dados da imagem. */
     data: Uint8Array;
-    /**
-     * Indica se uma determinada posição está dentro da área de desenho.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     *
-     * @returns {boolean}
-     */
-    withinImage(x: number, y: number): boolean;
-    /**
-     * Indica se um determinado índice de cor está dentro da paleta de cores.
-     *
-     * @param index Índice da paleta.
-     *
-     * @returns {boolean}
-     */
-    withinPalette(index: number): boolean;
-    /**
-     * Define uma cor da paleta no índice especificado.
-     *
-     * @param index Índice da paleta.
-     * @param color Cor.
-     *
-     * @returns {boolean}
-     */
-    setColor(index: number, color: Color): boolean;
-    /**
-     * Obtém uma cópia da cor da paleta no índice especificado.
-     * Retorna uma cor `#000000` quando não existe.
-     *
-     * @param index Índice da paleta.
-     *
-     * @returns {Color}
-     */
-    getColor(index: number): Color;
-    /**
-     * Define uma nova paleta de cores.
-     *
-     * @param colors Cores.
-     *
-     * @returns {boolean}
-     */
-    setPalette(colors: Color[]): boolean;
-    /**
-     * Obtém uma cópia da paleta de cores.
-     *
-     * @returns {Color[]}
-     */
-    getPalette(): Color[];
-    /**
-     * Obtém um *pixel* na posição especificada.
-     * Retorna a cor de paleta `-1` quando não existe.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     *
-     * @returns {number}
-     */
-    setPixel(x: number, y: number, primaryColor: number): boolean;
     /**
      * Define um *pixel* na posição especificada.
      *
@@ -268,18 +205,17 @@ export interface Drawable {
      *
      * @returns {boolean}
      */
-    getPixel(x: number, y: number): number;
+    setPixel(x: number, y: number, primaryColor: number): boolean;
     /**
-     * Retorna uma cópia da cor da paleta equivalente a um
-     * *pixel* escolhido na posição especificada.
-     * Retorna uma cor `#000000` quando não existe.
+     * Obtém um *pixel* na posição especificada,
+     * ou um valor distinto, caso não exista.
      *
      * @param x Posição X.
      * @param y Posição Y.
      *
-     * @returns {Color}
+     * @returns {number}
      */
-    getPixelColor(x: number, y: number): Color;
+    getPixel(x: number, y: number): number;
     /**
      * Limpa todo o conteúdo da imagem.
      *
@@ -334,19 +270,224 @@ export declare class Bitmap implements Drawable {
     toImageData(mask?: number): Uint8ClampedArray;
     get width(): number;
     get height(): number;
-    get size(): number;
-    get paletteSize(): number;
     get data(): Uint8Array;
-    withinImage(x: number, y: number): boolean;
-    withinPalette(index: number): boolean;
-    setColor(index: number, color: Color): boolean;
-    getColor(index: number): Color;
-    setPalette(colors: Color[]): boolean;
-    getPalette(): Color[];
     setPixel(x: number, y: number, primaryColor: number): boolean;
     getPixel(x: number, y: number): number;
-    getPixelColor(x: number, y: number): Color;
     clearImage(primaryColor: number): boolean;
+    /** Tamanho da área da imagem, em *pixels*. */
+    get size(): number;
+    /** Número de cores disponíveis na paleta. */
+    get paletteSize(): number;
+    /**
+     * Indica se uma determinada posição está dentro da área de desenho.
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     *
+     * @returns {boolean}
+     */
+    withinImage(x: number, y: number): boolean;
+    /**
+     * Indica se um determinado índice de cor está dentro da paleta de cores.
+     *
+     * @param index Índice da paleta.
+     *
+     * @returns {boolean}
+     */
+    withinPalette(index: number): boolean;
+    /**
+     * Define uma cor da paleta no índice especificado.
+     *
+     * @param index Índice da paleta.
+     * @param color Cor.
+     *
+     * @returns {boolean}
+     */
+    setColor(index: number, color: Color): boolean;
+    /**
+     * Obtém uma cópia da cor da paleta no índice especificado.
+     * Retorna uma cor `#000000` quando não existe.
+     *
+     * @param index Índice da paleta.
+     *
+     * @returns {Color}
+     */
+    getColor(index: number): Color;
+    /**
+     * Define uma nova paleta de cores.
+     *
+     * @param colors Cores.
+     *
+     * @returns {boolean}
+     */
+    setPalette(colors: Color[]): boolean;
+    /**
+     * Obtém uma cópia da paleta de cores.
+     *
+     * @returns {Color[]}
+     */
+    getPalette(): Color[];
+    /**
+     * Retorna uma cópia da cor da paleta equivalente a um
+     * *pixel* escolhido na posição especificada.
+     * Retorna uma cor `#000000` quando não existe.
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     *
+     * @returns {Color}
+     */
+    getPixelColor(x: number, y: number): Color;
+}
+/**
+ * @interface RenderingContext
+ *
+ * Estrutura representativa de um contexto de renderização.
+ *
+ * Um contexto de renderização declara diversas funcionalidades básicas
+ * de desenho disponíveis para uso.
+ */
+export interface RenderingContext<T> {
+    /** Elemento de desenho. */
+    target: T;
+    /**
+     * Define um *pixel* na posição especificada.
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param primaryColor Cor da paleta (primária).
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    pixel(x: number, y: number, primaryColor: number, shaders: PixelShader[]): this;
+    /**
+     * Limpa todo o conteúdo da imagem.
+     *
+     * @param primaryColor Cor da paleta (primária).
+     *
+     * @returns {this}
+     */
+    clear(primaryColor: number): this;
+    /**
+     * Desenha uma linha (horizontal).
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param size Tamanho.
+     * @param primaryColor Cor da paleta (primária).
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    hline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[]): this;
+    /**
+     * Desenha uma linha (vertical).
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param size Tamanho.
+     * @param primaryColor Cor da paleta (primária).
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    vline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[]): this;
+    /**
+     * Desenha um retângulo (bordas).
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param width Largura.
+     * @param height Altura.
+     * @param primaryColor Cor da paleta (primária).
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    rectb(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[]): this;
+    /**
+     * Desenha um retângulo (preenchido).
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param width Largura.
+     * @param height Altura.
+     * @param primaryColor Cor da paleta (primária).
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    rectf(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[]): this;
+    /**
+     * Desenha um retângulo.
+     *
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param width Largura.
+     * @param height Altura.
+     * @param primaryColor Cor da paleta (primária). Usada para as bordas.
+     * @param secondaryColor Cor da paleta (secundária). Usada para o preenchimento.
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    rect(x: number, y: number, width: number, height: number, primaryColor: number, secondaryColor: number, shaders: PixelShader[]): this;
+    /**
+     * Desenha um *bitmap* (recortado).
+     *
+     * @param drawable *Bitmap*.
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param cx Posição X de recorte.
+     * @param cy Posição Y de recorte.
+     * @param width Largura.
+     * @param height Altura.
+     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+     * @param rotation (*não implementado*) Rotação da imagem.
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    blitsub(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
+    /**
+     * Desenha um *bitmap* (completo).
+     *
+     * @param drawable *Bitmap*.
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+     * @param rotation (*não implementado*) Rotação da imagem.
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    blit(drawable: Drawable, x: number, y: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
+    /**
+     * Escreve um texto, utilizando um *bitmap* como fonte.
+     *
+     * @param drawable *Bitmap*.
+     * @param x Posição X.
+     * @param y Posição Y.
+     * @param cx Posição X de recorte.
+     * @param cy Posição Y de recorte.
+     * @param width Largura.
+     * @param height Altura.
+     * @param charset *Set* de caracteres da fonte.
+     * @param charColumns Número de caracteres por coluna.
+     * @param text Texto a ser escrito.
+     * @param letterSpacing Espaçamento horizontal entre caracteres.
+     * @param lineHeight Espaçamento vertical entre linhas.
+     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
+     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
+     * @param rotation (*não implementado*) Rotação da imagem.
+     * @param shaders *Pixel shaders*.
+     *
+     * @returns {this}
+     */
+    text(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number, lineHeight: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
 }
 /**
  * @class Surface
@@ -356,7 +497,7 @@ export declare class Bitmap implements Drawable {
  * Com uma *surface*, é possível realizar uma série de operações básicas
  * de desenho, como linhas, retângulos e outros *bitmaps*.
  */
-export declare class Surface<T extends Drawable> {
+export declare class Surface<T extends Drawable> implements RenderingContext<T> {
     /** *Bitmap*. */
     private _drawable;
     /**
@@ -366,6 +507,7 @@ export declare class Surface<T extends Drawable> {
      */
     constructor(drawable: T);
     get drawable(): T;
+    get target(): T;
     /**
      * Define um *pixel* na posição especificada.
      *
