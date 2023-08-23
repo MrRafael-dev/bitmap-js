@@ -346,12 +346,12 @@ export interface Drawable {
 //#endregion </drawable.ts>
 //#region <bitmap.ts>
 /**
- * @enum BitmapOffsets
+ * @enum BitmapOffset
  * 
  * @description
- * *Offsets* de metadados do *bitmap*.
+ * Enumerador de *offsets* de metadados do *bitmap*.
  */
-enum BitmapOffsets {
+enum BitmapOffset {
 	/** Tamanho do cabeçalho (incluindo paleta). */
 	HEADER_SIZE = 1078,
 	
@@ -387,31 +387,6 @@ enum BitmapOffsets {
 }
 
 /**
- * Cabeçalho padrão.
- *
- * Assume-se um *bitmap* descomprimido com
- * uma paleta de 256 cores (formato *8bpp*).
- */
-const defaultHeader: Uint8Array = new Uint8Array(54);
-defaultHeader.set([
-	0x42, 0x4d,             // Número mágico ("BM").
-	0x00, 0x00, 0x00, 0x00, // Tamanho do arquivo, em bytes.
-	0x00, 0x00, 0x00, 0x00, // Reservado (sem uso).
-	0x36, 0x04, 0x00, 0x00, // Offset dos dados da imagem.
-	0x28, 0x00, 0x00, 0x00, // Tamanho do cabeçalho.
-	0x00, 0x00, 0x00, 0x00, // Largura do bitmap, em pixels.
-	0x00, 0x00, 0x00, 0x00, // Altura do bitmap, em pixels.
-	0x01, 0x00,             // Número de planos de cor.
-	0x08, 0x00,             // Formato de cores (bits per pixel).
-	0x00, 0x00, 0x00, 0x00, // Formato de compressão.
-	0x00, 0x00, 0x00, 0x00, // Tamanho da imagem (quando comprimida).
-	0x12, 0x0b, 0x00, 0x00, // Resolução horizontal (pixels/metro).
-	0x12, 0x0b, 0x00, 0x00, // Resolução vertical (pixels/metro).
-	0x00, 0x01, 0x00, 0x00, // Número de cores em uso.
-	0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
-]);
-
-/**
  * @class Bitmap @implements Drawable
  * 
  * @description
@@ -444,7 +419,7 @@ export class Bitmap implements Drawable {
 	public static from(file: Uint8Array): Bitmap {
 		// Esta biblioteca aceita apenas um formato muito específico de bitmap,
 		// e este formato acontece de ter um cabeçalho de exatos 1078 bytes.
-		if(file.byteLength < BitmapOffsets.HEADER_SIZE) {
+		if(file.byteLength < BitmapOffset.HEADER_SIZE) {
 			throw new Error("Supported bitmaps must have at least 1078 bytes or more to be accepted.");
 		}
 
@@ -452,32 +427,32 @@ export class Bitmap implements Drawable {
 		const fileView: DataView = new DataView(file.buffer);
 
 		/** (Número mágico ("BM"). */
-		const signature: number = fileView.getUint16(BitmapOffsets.HEADER_MAGIC, false);
+		const signature: number = fileView.getUint16(BitmapOffset.HEADER_MAGIC, false);
 
 		/** *Offset* dos ados da imagem. */
-		const dataOffset: number = fileView.getUint32(BitmapOffsets.HEADER_DATA, true);
+		const dataOffset: number = fileView.getUint32(BitmapOffset.HEADER_DATA, true);
 
 		/** Largura do *bitmap*, em *pixels*. */
-		const width: number = fileView.getUint32(BitmapOffsets.HEADER_WIDTH, true);
+		const width: number = fileView.getUint32(BitmapOffset.HEADER_WIDTH, true);
 
 		/** Altura do *bitmap*, em *pixels*. */
-		const height: number = fileView.getUint32(BitmapOffsets.HEADER_HEIGHT, true);
+		const height: number = fileView.getUint32(BitmapOffset.HEADER_HEIGHT, true);
 
 		/** Formato de cores (*bits per pixel*). */
-		const bitsPerPixel: number = fileView.getUint16(BitmapOffsets.HEADER_COLOR_FORMAT, true);
+		const bitsPerPixel: number = fileView.getUint16(BitmapOffset.HEADER_COLOR_FORMAT, true);
 
 		/** Formato de compressão. */
-		const compression: number = fileView.getUint16(BitmapOffsets.HEADER_COMPRESSION, true);
+		const compression: number = fileView.getUint16(BitmapOffset.HEADER_COMPRESSION, true);
 		
 		// Bitmaps são identificados pelo número mágico 0x424D ("BM").
 		// Formatos inválidos serão rejeitados.
-		if(signature !== BitmapOffsets.HEADER_BM) {
+		if(signature !== BitmapOffset.HEADER_BM) {
 			throw new Error("Invalid bitmap signature header. They must start with 0x424D (16973).");
 		}
 
 		// O formato de bitmap é tão específico que até o offset do início dos
 		// dados de imagem precisam começar no lugar correto.
-		if(dataOffset !== BitmapOffsets.HEADER_SIZE) {
+		if(dataOffset !== BitmapOffset.HEADER_SIZE) {
 			throw new Error("Supported bitmaps must have their image data start exactly at offset 0x00000436 (1078).");
 		}
 
@@ -501,9 +476,9 @@ export class Bitmap implements Drawable {
 		const result: Bitmap = new Bitmap(width, height);
 
 		/** Dados de paleta e imagem do arquivo. */
-		const fragment: Uint8Array = file.slice(BitmapOffsets.PALETTE_START, file.byteLength);
+		const fragment: Uint8Array = file.slice(BitmapOffset.PALETTE_START, file.byteLength);
 
-		result.data.set(fragment, BitmapOffsets.PALETTE_START);
+		result.data.set(fragment, BitmapOffset.PALETTE_START);
 		return result;
 	}
 
@@ -527,19 +502,46 @@ export class Bitmap implements Drawable {
 		this._width = width;
 		this._height = height;
 		this._size = size;
-		this._paletteSize = BitmapOffsets.PALETTE_SIZE;
-		this._data = new Uint8Array(BitmapOffsets.HEADER_SIZE + size);
+		this._paletteSize = BitmapOffset.PALETTE_SIZE;
+		this._data = new Uint8Array(BitmapOffset.HEADER_SIZE + size);
 
 		/** Visualizador de dados da imagem. */
 		const view: DataView = new DataView(this._data.buffer);
 		
+		/**
+ 		 * Cabeçalho padrão.
+ 		 *
+ 		 * Assume-se um *bitmap* descomprimido com
+ 		 * uma paleta de 256 cores (formato *8bpp*).
+ 		 */
+		const defaultHeader: Uint8Array = new Uint8Array(54);
+		
+		// Escrever cabeçalho padrão...
+		defaultHeader.set([
+			0x42, 0x4d,             // Número mágico ("BM").
+			0x00, 0x00, 0x00, 0x00, // Tamanho do arquivo, em bytes.
+			0x00, 0x00, 0x00, 0x00, // Reservado (sem uso).
+			0x36, 0x04, 0x00, 0x00, // Offset dos dados da imagem.
+			0x28, 0x00, 0x00, 0x00, // Tamanho do cabeçalho.
+			0x00, 0x00, 0x00, 0x00, // Largura do bitmap, em pixels.
+			0x00, 0x00, 0x00, 0x00, // Altura do bitmap, em pixels.
+			0x01, 0x00,             // Número de planos de cor.
+			0x08, 0x00,             // Formato de cores (bits per pixel).
+			0x00, 0x00, 0x00, 0x00, // Formato de compressão.
+			0x00, 0x00, 0x00, 0x00, // Tamanho da imagem (quando comprimida).
+			0x12, 0x0b, 0x00, 0x00, // Resolução horizontal (pixels/metro).
+			0x12, 0x0b, 0x00, 0x00, // Resolução vertical (pixels/metro).
+			0x00, 0x01, 0x00, 0x00, // Número de cores em uso.
+			0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
+		]);
+
 		// Inserir cabeçalho...
 		this._data.set(defaultHeader, 0);
 
 		// Escrever tamanho do arquivo e altura/largura da imagem...
-		view.setUint32(BitmapOffsets.HEADER_FILESIZE, this._data.byteLength, true);
-		view.setUint32(BitmapOffsets.HEADER_WIDTH, this.width, true);
-		view.setUint32(BitmapOffsets.HEADER_HEIGHT, this.height, true);
+		view.setUint32(BitmapOffset.HEADER_FILESIZE, this._data.byteLength, true);
+		view.setUint32(BitmapOffset.HEADER_WIDTH, this.width, true);
+		view.setUint32(BitmapOffset.HEADER_HEIGHT, this.height, true);
 
 		// Inserir paleta de cores...
 		this.setPalette(colors);
@@ -620,7 +622,7 @@ export class Bitmap implements Drawable {
 		const iy: number = (this._height - 1) - py;
 
 		/** *Offset* do *pixel*. */
-		const offset: number = BitmapOffsets.HEADER_SIZE + (this._width * iy) + px;
+		const offset: number = BitmapOffset.HEADER_SIZE + (this._width * iy) + px;
 
 		this._data[offset] = primaryColor;
 		return true;
@@ -637,13 +639,13 @@ export class Bitmap implements Drawable {
 		const iy: number = (this._height - 1) - y;
 
 		/** *Offset* do *pixel*. */
-		const offset: number = BitmapOffsets.HEADER_SIZE + (this._width * iy) + x;
+		const offset: number = BitmapOffset.HEADER_SIZE + (this._width * iy) + x;
 
 		return this._data[offset];
 	}
 
 	public clearImage(primaryColor: number): boolean {
-		this.data.fill(primaryColor, BitmapOffsets.HEADER_SIZE);
+		this.data.fill(primaryColor, BitmapOffset.HEADER_SIZE);
 		return true;
 	}
 
@@ -696,7 +698,7 @@ export class Bitmap implements Drawable {
 		}
 
 		/** *Offset* da paleta. */
-		const offset: number = BitmapOffsets.PALETTE_START + (index * 4);
+		const offset: number = BitmapOffset.PALETTE_START + (index * 4);
 
 		// Escrever a nova cor...
 		this._data[offset] = color.b;
@@ -723,7 +725,7 @@ export class Bitmap implements Drawable {
 		}
 
 		/** *Offset* da paleta. */
-		const offset: number = BitmapOffsets.PALETTE_START + (index * 4);
+		const offset: number = BitmapOffset.PALETTE_START + (index * 4);
 
 		return new Color(
 			this._data[offset + 2],
@@ -799,169 +801,6 @@ export class Bitmap implements Drawable {
 }
 
 //#endregion </bitmap.ts>
-//#region <rendering_context.ts>
-/**
- * @interface RenderingContext
- * 
- * Estrutura representativa de um contexto de renderização.
- * 
- * Um contexto de renderização declara diversas funcionalidades básicas
- * de desenho disponíveis para uso.
- */
-export interface RenderingContext<T> {
-	/** Elemento de desenho. */
-	target: T;
-
-	/**
-	 * Define um *pixel* na posição especificada.
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param primaryColor Cor da paleta (primária).
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	pixel(x: number, y: number, primaryColor: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Limpa todo o conteúdo da imagem.
-	 * 
-	 * @param primaryColor Cor da paleta (primária).
-	 * 
-	 * @returns {this}
-	 */
-	clear(primaryColor: number): this;
-
-	/**
-	 * Desenha uma linha (horizontal).
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param size Tamanho.
-	 * @param primaryColor Cor da paleta (primária).
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	hline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Desenha uma linha (vertical).
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param size Tamanho.
-	 * @param primaryColor Cor da paleta (primária).
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	vline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Desenha um retângulo (bordas).
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param width Largura.
-	 * @param height Altura.
-	 * @param primaryColor Cor da paleta (primária).
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	rectb(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Desenha um retângulo (preenchido).
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param width Largura.
-	 * @param height Altura.
-	 * @param primaryColor Cor da paleta (primária).
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	rectf(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Desenha um retângulo.
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param width Largura.
-	 * @param height Altura.
-	 * @param primaryColor Cor da paleta (primária). Usada para as bordas.
-	 * @param secondaryColor Cor da paleta (secundária). Usada para o preenchimento.
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	rect(x: number, y: number, width: number, height: number, primaryColor: number, secondaryColor: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Desenha um *bitmap* (recortado).
-	 * 
-	 * @param drawable *Bitmap*.
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param cx Posição X de recorte.
-	 * @param cy Posição Y de recorte.
-	 * @param width Largura.
-	 * @param height Altura.
-	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
-	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-	 * @param rotation (*não implementado*) Rotação da imagem.
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	blitsub(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Desenha um *bitmap* (completo).
-	 * 
-	 * @param drawable *Bitmap*.
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
-	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-	 * @param rotation (*não implementado*) Rotação da imagem.
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	blit(drawable: Drawable, x: number, y: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
-
-	/**
-	 * Escreve um texto, utilizando um *bitmap* como fonte.
-	 * 
-	 * @param drawable *Bitmap*.
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * @param cx Posição X de recorte.
-	 * @param cy Posição Y de recorte.
-	 * @param width Largura.
-	 * @param height Altura.
-	 * @param charset *Set* de caracteres da fonte.
-	 * @param charColumns Número de caracteres por coluna.
-	 * @param text Texto a ser escrito.
-	 * @param letterSpacing Espaçamento horizontal entre caracteres.
-	 * @param lineHeight Espaçamento vertical entre linhas.
-	 * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
-	 * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-	 * @param rotation (*não implementado*) Rotação da imagem.
-	 * @param shaders *Pixel shaders*.
-	 * 
-	 * @returns {this}
-	 */
-	text(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number, lineHeight: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
-}
-
-//#endregion </rendering_context.ts>
 //#region <surface.ts>
 /**
  * @class Surface
@@ -971,7 +810,7 @@ export interface RenderingContext<T> {
  * Com uma *surface*, é possível realizar uma série de operações básicas
  * de desenho, como linhas, retângulos e outros *bitmaps*.
  */
-export class Surface<T extends Drawable> implements RenderingContext<T> {
+export class Surface<T extends Drawable> {
 	/** *Bitmap*. */
 	private _drawable: T;
 
@@ -985,10 +824,6 @@ export class Surface<T extends Drawable> implements RenderingContext<T> {
 	}
 
 	public get drawable(): T {
-		return this._drawable;
-	}
-
-	public get target(): T {
 		return this._drawable;
 	}
 

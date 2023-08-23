@@ -340,156 +340,6 @@ export declare class Bitmap implements Drawable {
     getPixelColor(x: number, y: number): Color;
 }
 /**
- * @interface RenderingContext
- *
- * Estrutura representativa de um contexto de renderização.
- *
- * Um contexto de renderização declara diversas funcionalidades básicas
- * de desenho disponíveis para uso.
- */
-export interface RenderingContext<T> {
-    /** Elemento de desenho. */
-    target: T;
-    /**
-     * Define um *pixel* na posição especificada.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param primaryColor Cor da paleta (primária).
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    pixel(x: number, y: number, primaryColor: number, shaders: PixelShader[]): this;
-    /**
-     * Limpa todo o conteúdo da imagem.
-     *
-     * @param primaryColor Cor da paleta (primária).
-     *
-     * @returns {this}
-     */
-    clear(primaryColor: number): this;
-    /**
-     * Desenha uma linha (horizontal).
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param size Tamanho.
-     * @param primaryColor Cor da paleta (primária).
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    hline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[]): this;
-    /**
-     * Desenha uma linha (vertical).
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param size Tamanho.
-     * @param primaryColor Cor da paleta (primária).
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    vline(x: number, y: number, size: number, primaryColor: number, shaders: PixelShader[]): this;
-    /**
-     * Desenha um retângulo (bordas).
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param width Largura.
-     * @param height Altura.
-     * @param primaryColor Cor da paleta (primária).
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    rectb(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[]): this;
-    /**
-     * Desenha um retângulo (preenchido).
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param width Largura.
-     * @param height Altura.
-     * @param primaryColor Cor da paleta (primária).
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    rectf(x: number, y: number, width: number, height: number, primaryColor: number, shaders: PixelShader[]): this;
-    /**
-     * Desenha um retângulo.
-     *
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param width Largura.
-     * @param height Altura.
-     * @param primaryColor Cor da paleta (primária). Usada para as bordas.
-     * @param secondaryColor Cor da paleta (secundária). Usada para o preenchimento.
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    rect(x: number, y: number, width: number, height: number, primaryColor: number, secondaryColor: number, shaders: PixelShader[]): this;
-    /**
-     * Desenha um *bitmap* (recortado).
-     *
-     * @param drawable *Bitmap*.
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param cx Posição X de recorte.
-     * @param cy Posição Y de recorte.
-     * @param width Largura.
-     * @param height Altura.
-     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
-     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-     * @param rotation (*não implementado*) Rotação da imagem.
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    blitsub(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
-    /**
-     * Desenha um *bitmap* (completo).
-     *
-     * @param drawable *Bitmap*.
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
-     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-     * @param rotation (*não implementado*) Rotação da imagem.
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    blit(drawable: Drawable, x: number, y: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
-    /**
-     * Escreve um texto, utilizando um *bitmap* como fonte.
-     *
-     * @param drawable *Bitmap*.
-     * @param x Posição X.
-     * @param y Posição Y.
-     * @param cx Posição X de recorte.
-     * @param cy Posição Y de recorte.
-     * @param width Largura.
-     * @param height Altura.
-     * @param charset *Set* de caracteres da fonte.
-     * @param charColumns Número de caracteres por coluna.
-     * @param text Texto a ser escrito.
-     * @param letterSpacing Espaçamento horizontal entre caracteres.
-     * @param lineHeight Espaçamento vertical entre linhas.
-     * @param scaleX Escala/inverte a imagem horizontalmente. Os valores são convertidos para inteiros.
-     * @param scaleY Escala/inverte a imagem verticalmente. Os valores são convertidos para inteiros.
-     * @param rotation (*não implementado*) Rotação da imagem.
-     * @param shaders *Pixel shaders*.
-     *
-     * @returns {this}
-     */
-    text(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing: number, lineHeight: number, scaleX: number, scaleY: number, rotation: number, shaders: PixelShader[]): this;
-}
-/**
  * @class Surface
  *
  * @description
@@ -497,7 +347,7 @@ export interface RenderingContext<T> {
  * Com uma *surface*, é possível realizar uma série de operações básicas
  * de desenho, como linhas, retângulos e outros *bitmaps*.
  */
-export declare class Surface<T extends Drawable> implements RenderingContext<T> {
+export declare class Surface<T extends Drawable> {
     /** *Bitmap*. */
     private _drawable;
     /**
@@ -507,7 +357,6 @@ export declare class Surface<T extends Drawable> implements RenderingContext<T> 
      */
     constructor(drawable: T);
     get drawable(): T;
-    get target(): T;
     /**
      * Define um *pixel* na posição especificada.
      *
