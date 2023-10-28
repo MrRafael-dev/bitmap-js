@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "bitmap-js",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Simple bitmap library for JavaScript.",
   "main": "index.js",
   "scripts": {
@@ -27,5 +27,9 @@
   "bugs": {
     "url": "https://github.com/MrRafael-dev/bitmap-js/issues"
   },
-  "homepage": "https://github.com/MrRafael-dev/bitmap-js#readme"
+  "homepage": "https://github.com/MrRafael-dev/bitmap-js#readme",
+  "devDependencies": {
+    "assemblyscript": "^0.27.14",
+    "typescript": "^5.2.2"
+  }
 }

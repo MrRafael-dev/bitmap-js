@@ -77,6 +77,7 @@ export class Color {
 	}
 
 	/**
+	 * @constructor
 	 * 
 	 * @param r Canal de cor vermelho (*red*).
 	 * @param g Canal de cor verde (*green*).
@@ -546,7 +547,6 @@ export class Bitmap implements Drawable {
 		// Inserir paleta de cores...
 		this.setPalette(colors);
 	}
-
 	
 	/**
 	 * Exporta os dados da imagem para uma *array* de *bytes* no formato RGBA.
