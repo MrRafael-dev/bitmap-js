@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.7
+ * @version 1.0.9
  * 
  * @description
  * Biblioteca de *bitmap* simples para *AssemblyScript*.
@@ -14,66 +14,6 @@
  * de 256 cores (formato *8bpp*) são suportados.
  */
 
-//#region <constants.ts>
-/** Tamanho do cabeçalho (incluindo paleta). */
-const HEADER_SIZE: i32 = 1078;
-
-/** Número mágico ("BM"). */
-const HEADER_BM: u16 = 0x424D;
-
-/** (*Offset*) Número mágico ("BM"). */
-const HEADER_MAGIC: i32 = 0;
-
-/** (*Offset*) *Offset* dos ados da imagem. */
-const HEADER_DATA: i32 = 10;
-
-/** (*Offset*) Tamanho do arquivo, em *bytes*. */
-const HEADER_FILESIZE: i32 = 2;
-
-/** (*Offset*) Largura do *bitmap*, em *pixels*. */
-const HEADER_WIDTH: i32 = 18;
-
-/** (*Offset*) Altura do *bitmap*, em *pixels*. */
-const HEADER_HEIGHT: i32 = 22;
-
-/** (*Offset*) Formato de cores (*bits per pixel*). */
-const HEADER_COLOR_FORMAT: i32 = 28;
-
-/** (*Offset*) Formato de compressão. */
-const HEADER_COMPRESSION: i32 = 30;
-
-/** Número de cores da paleta. */
-const PALETTE_SIZE: i32 = 256;
-
-/** (*Offset*) Posição da paleta de cores. */
-const PALETTE_START: i32 = 54;
-
-/**
- * Cabeçalho padrão.
- *
- * Assume-se um *bitmap* descomprimido com
- * uma paleta de 256 cores (formato *8bpp*).
- */
-const defaultHeader: Uint8Array = new Uint8Array(54);
-defaultHeader.set([
-	0x42, 0x4d,             // Número mágico ("BM").
-	0x00, 0x00, 0x00, 0x00, // Tamanho do arquivo, em bytes.
-	0x00, 0x00, 0x00, 0x00, // Reservado (sem uso).
-	0x36, 0x04, 0x00, 0x00, // Offset dos dados da imagem.
-	0x28, 0x00, 0x00, 0x00, // Tamanho do cabeçalho.
-	0x00, 0x00, 0x00, 0x00, // Largura do bitmap, em pixels.
-	0x00, 0x00, 0x00, 0x00, // Altura do bitmap, em pixels.
-	0x01, 0x00,             // Número de planos de cor.
-	0x08, 0x00,             // Formato de cores (bits per pixel).
-	0x00, 0x00, 0x00, 0x00, // Formato de compressão.
-	0x00, 0x00, 0x00, 0x00, // Tamanho da imagem (quando comprimida).
-	0x12, 0x0b, 0x00, 0x00, // Resolução horizontal (pixels/metro).
-	0x12, 0x0b, 0x00, 0x00, // Resolução vertical (pixels/metro).
-	0x00, 0x01, 0x00, 0x00, // Número de cores em uso.
-	0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
-]);
-
-//#endregion </constants.ts>
 //#region <color.ts>
 /**
  * @class Color
@@ -137,6 +77,7 @@ export class Color {
 	}
 
 	/**
+	 * @constructor
 	 * 
 	 * @param r Canal de cor vermelho (*red*).
 	 * @param g Canal de cor verde (*green*).
@@ -363,85 +304,13 @@ export interface PixelShader {
  */
 export interface Drawable {
 	/** Largura da imagem. */
-	width: u16;
+	width: i32;
 
 	/** Altura da imagem. */
-	height: u16;
-
-	/** Tamanho da área da imagem, em *pixels*. */
-	size: u32;
-
-	/** Número de cores disponíveis na paleta. */
-	paletteSize: u32;
+	height: i32;
 
 	/** Dados da imagem. */
 	data: Uint8Array;
-
-	/**
-	 * Indica se uma determinada posição está dentro da área de desenho.
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * 
-	 * @returns {boolean}
-	 */
-	withinImage(x: i32, y: i32): boolean;
-
-	/**
-	 * Indica se um determinado índice de cor está dentro da paleta de cores.
-	 * 
-	 * @param index Índice da paleta.
-	 * 
-	 * @returns {boolean}
-	 */
-	withinPalette(index: i32): boolean;
-
-	/**
-	 * Define uma cor da paleta no índice especificado.
-	 * 
-	 * @param index Índice da paleta.
-	 * @param color Cor.
-	 * 
-	 * @returns {boolean}
-	 */
-	setColor(index: i32, color: Color): boolean;
-
-	/**
-	 * Obtém uma cópia da cor da paleta no índice especificado.
-	 * Retorna uma cor `#000000` quando não existe.
-	 * 
-	 * @param index Índice da paleta.
-	 * 
-	 * @returns {Color}
-	 */
-	getColor(index: i32): Color;
-
-	/**
-	 * Define uma nova paleta de cores.
-	 * 
-	 * @param colors Cores.
-	 * 
-	 * @returns {boolean}
-	 */
-	setPalette(colors: Color[]): boolean;
-
-	/**
-	 * Obtém uma cópia da paleta de cores.
-	 * 
-	 * @returns {Color[]}
-	 */
-	getPalette(): Color[];
-
-	/**
-	 * Obtém um *pixel* na posição especificada.
-	 * Retorna a cor de paleta `-1` quando não existe.
-	 * 
-	 * @param x Posição X.
-	 * @param y Posição Y.
-	 * 
-	 * @returns {number}
-	 */
-	setPixel(x: i32, y: i32, primaryColor: i32): boolean;
 
 	/**
 	 * Define um *pixel* na posição especificada.
@@ -450,34 +319,74 @@ export interface Drawable {
 	 * @param y Posição Y.
 	 * @param primaryColor Cor da paleta (primária).
 	 * 
-	 * @returns {boolean}
+	 * @returns {bool}
 	 */
-	getPixel(x: i32, y: i32): i32;
-
+	setPixel(x: i32, y: i32, primaryColor: i32): bool;
+	
 	/**
-	 * Retorna uma cópia da cor da paleta equivalente a um
-	 * *pixel* escolhido na posição especificada.
-	 * Retorna uma cor `#000000` quando não existe.
+	 * Obtém um *pixel* na posição especificada,
+	 * ou um valor distinto, caso não exista.
 	 * 
 	 * @param x Posição X.
 	 * @param y Posição Y.
 	 * 
-	 * @returns {Color}
+	 * @returns {i32}
 	 */
-	getPixelColor(x: i32, y: i32): Color;
+	getPixel(x: i32, y: i32): i32;
 
 	/**
 	 * Limpa todo o conteúdo da imagem.
 	 * 
 	 * @param primaryColor Cor da paleta (primária).
 	 * 
-	 * @returns {boolean}
+	 * @returns {bool}
 	 */
-	clearImage(primaryColor: i32): boolean;
+	clearImage(primaryColor: i32): bool;
 }
 
 //#endregion </drawable.ts>
 //#region <bitmap.ts>
+/**
+ * @enum BitmapOffset
+ * 
+ * @description
+ * Enumerador de *offsets* de metadados do *bitmap*.
+ */
+enum BitmapOffset {
+	/** Tamanho do cabeçalho (incluindo paleta). */
+	HEADER_SIZE = 1078,
+	
+	/** Número mágico ("BM"). */
+	HEADER_BM = 16973,
+
+	/** (*Offset*) Número mágico ("BM"). */
+	HEADER_MAGIC = 0,
+
+	/** (*Offset*) *Offset* dos ados da imagem. */
+	HEADER_DATA = 10,
+
+	/** (*Offset*) Tamanho do arquivo, em *bytes*. */
+	HEADER_FILESIZE = 2,
+
+	/** (*Offset*) Largura do *bitmap*, em *pixels*. */
+	HEADER_WIDTH= 18,
+
+	/** (*Offset*) Altura do *bitmap*, em *pixels*. */
+	HEADER_HEIGHT = 22,
+
+	/** (*Offset*) Formato de cores (*bits per pixel*). */
+	HEADER_COLOR_FORMAT = 28,
+
+	/** (*Offset*) Formato de compressão. */
+	HEADER_COMPRESSION = 30,
+
+	/** Número de cores da paleta. */
+	PALETTE_SIZE = 256,
+
+	/** (*Offset*) Posição da paleta de cores. */
+	PALETTE_START = 54,
+}
+
 /**
  * @class Bitmap @implements Drawable
  * 
@@ -487,16 +396,16 @@ export interface Drawable {
  */
 export class Bitmap implements Drawable {
 	/** Largura. */
-	private _width: u16;
+	private _width: i32;
 
 	/** Altura. */
-	private _height: u16;
+	private _height: i32;
 
 	/** Tamanho da área da imagem, em *pixels*. */
-	private _size: u32;
+	private _size: i32;
 
 	/** Número de cores disponíveis na paleta. */
-	private _paletteSize: u32;
+	private _paletteSize: i32;
 
 	/** Dados da imagem. */
 	private _data: Uint8Array;
@@ -511,7 +420,7 @@ export class Bitmap implements Drawable {
 	public static from(file: Uint8Array): Bitmap {
 		// Esta biblioteca aceita apenas um formato muito específico de bitmap,
 		// e este formato acontece de ter um cabeçalho de exatos 1078 bytes.
-		if(file.byteLength < HEADER_SIZE) {
+		if(file.byteLength < BitmapOffset.HEADER_SIZE) {
 			throw new Error("Supported bitmaps must have at least 1078 bytes or more to be accepted.");
 		}
 
@@ -519,32 +428,32 @@ export class Bitmap implements Drawable {
 		const fileView: DataView = new DataView(file.buffer);
 
 		/** (Número mágico ("BM"). */
-		const signature: u16 = fileView.getUint16(HEADER_MAGIC, false);
+		const signature: i32 = fileView.getUint16(BitmapOffset.HEADER_MAGIC, false);
 
 		/** *Offset* dos ados da imagem. */
-		const dataOffset: u32 = fileView.getUint32(HEADER_DATA, true);
+		const dataOffset: i32 = fileView.getUint32(BitmapOffset.HEADER_DATA, true);
 
 		/** Largura do *bitmap*, em *pixels*. */
-		const width: u16 = fileView.getUint32(HEADER_WIDTH, true) as u16;
+		const width: i32 = fileView.getUint32(BitmapOffset.HEADER_WIDTH, true);
 
 		/** Altura do *bitmap*, em *pixels*. */
-		const height: u16 = fileView.getUint32(HEADER_HEIGHT, true) as u16;
+		const height: i32 = fileView.getUint32(BitmapOffset.HEADER_HEIGHT, true);
 
 		/** Formato de cores (*bits per pixel*). */
-		const bitsPerPixel: u16 = fileView.getUint16(HEADER_COLOR_FORMAT, true);
+		const bitsPerPixel: i32 = fileView.getUint16(BitmapOffset.HEADER_COLOR_FORMAT, true);
 
 		/** Formato de compressão. */
-		const compression: u16 = fileView.getUint16(HEADER_COMPRESSION, true);
+		const compression: i32 = fileView.getUint16(BitmapOffset.HEADER_COMPRESSION, true);
 		
 		// Bitmaps são identificados pelo número mágico 0x424D ("BM").
 		// Formatos inválidos serão rejeitados.
-		if(signature !== HEADER_BM) {
+		if(signature !== BitmapOffset.HEADER_BM) {
 			throw new Error("Invalid bitmap signature header. They must start with 0x424D (16973).");
 		}
 
 		// O formato de bitmap é tão específico que até o offset do início dos
 		// dados de imagem precisam começar no lugar correto.
-		if(dataOffset !== HEADER_SIZE) {
+		if(dataOffset !== BitmapOffset.HEADER_SIZE) {
 			throw new Error("Supported bitmaps must have their image data start exactly at offset 0x00000436 (1078).");
 		}
 
@@ -568,9 +477,9 @@ export class Bitmap implements Drawable {
 		const result: Bitmap = new Bitmap(width, height);
 
 		/** Dados de paleta e imagem do arquivo. */
-		const fragment: Uint8Array = file.slice(PALETTE_START, file.byteLength);
+		const fragment: Uint8Array = file.slice(BitmapOffset.PALETTE_START, file.byteLength);
 
-		result.data.set(fragment, PALETTE_START);
+		result.data.set(fragment, BitmapOffset.PALETTE_START);
 		return result;
 	}
 
@@ -581,7 +490,7 @@ export class Bitmap implements Drawable {
 	 * @param height Altura.
 	 * @param colors Cores.
 	 */
-	public constructor(width: u16, height: u16, colors: Color[] = []) {
+	public constructor(width: i32, height: i32, colors: Color[] = []) {
 		// Bitmaps devem ter um tamanho pelo menos de 1x1.
 		// Tamanhos inválidos serão rejeitados.
 		if(width <= 0 || height <= 0) {
@@ -589,29 +498,56 @@ export class Bitmap implements Drawable {
 		}
 
 		/** Tamanho da área da imagem, em *pixels*. */
-		const size: u32 = (width * height) as u32;
+		const size: i32 = width * height;
 
 		this._width = width;
 		this._height = height;
 		this._size = size;
-		this._paletteSize = PALETTE_SIZE;
-		this._data = new Uint8Array(HEADER_SIZE + size);
+		this._paletteSize = BitmapOffset.PALETTE_SIZE;
+		this._data = new Uint8Array(BitmapOffset.HEADER_SIZE + size);
 
 		/** Visualizador de dados da imagem. */
 		const view: DataView = new DataView(this._data.buffer);
 		
+		/**
+ 		 * Cabeçalho padrão.
+ 		 *
+ 		 * Assume-se um *bitmap* descomprimido com
+ 		 * uma paleta de 256 cores (formato *8bpp*).
+ 		 */
+		const defaultHeader: Uint8Array = new Uint8Array(54);
+		
+		// Escrever cabeçalho padrão...
+		defaultHeader.set([
+			0x42, 0x4d,             // Número mágico ("BM").
+			0x00, 0x00, 0x00, 0x00, // Tamanho do arquivo, em bytes.
+			0x00, 0x00, 0x00, 0x00, // Reservado (sem uso).
+			0x36, 0x04, 0x00, 0x00, // Offset dos dados da imagem.
+			0x28, 0x00, 0x00, 0x00, // Tamanho do cabeçalho.
+			0x00, 0x00, 0x00, 0x00, // Largura do bitmap, em pixels.
+			0x00, 0x00, 0x00, 0x00, // Altura do bitmap, em pixels.
+			0x01, 0x00,             // Número de planos de cor.
+			0x08, 0x00,             // Formato de cores (bits per pixel).
+			0x00, 0x00, 0x00, 0x00, // Formato de compressão.
+			0x00, 0x00, 0x00, 0x00, // Tamanho da imagem (quando comprimida).
+			0x12, 0x0b, 0x00, 0x00, // Resolução horizontal (pixels/metro).
+			0x12, 0x0b, 0x00, 0x00, // Resolução vertical (pixels/metro).
+			0x00, 0x01, 0x00, 0x00, // Número de cores em uso.
+			0x00, 0x01, 0x00, 0x00, // Número de cores importantes.
+		]);
+
 		// Inserir cabeçalho...
 		this._data.set(defaultHeader, 0);
 
 		// Escrever tamanho do arquivo e altura/largura da imagem...
-		view.setUint32(HEADER_FILESIZE, this._data.byteLength, true);
-		view.setUint32(HEADER_WIDTH, this.width, true);
-		view.setUint32(HEADER_HEIGHT, this.height, true);
+		view.setUint32(BitmapOffset.HEADER_FILESIZE, this._data.byteLength, true);
+		view.setUint32(BitmapOffset.HEADER_WIDTH, this.width, true);
+		view.setUint32(BitmapOffset.HEADER_HEIGHT, this.height, true);
 
 		// Inserir paleta de cores...
 		this.setPalette(colors);
 	}
-
+	
 	/**
 	 * Exporta os dados da imagem para uma *array* de *bytes* no formato RGBA.
 	 * Este é o mesmo formato utilizado em elementos `<canvas>`.
@@ -625,8 +561,8 @@ export class Bitmap implements Drawable {
 		const result: Uint8ClampedArray = new Uint8ClampedArray(this._size * 4);
 
 		// Percorrer pixels da imagem...
-		for(let y: i32 = 0; y < (this._height as i32); y += 1) {
-			for(let x: i32 = 0; x < (this._width as i32); x += 1) {
+		for(let y: i32 = 0; y < this._height; y += 1) {
+			for(let x: i32 = 0; x < this._width; x += 1) {
 				/** *Pixel*. */
 				const pixel: i32 = this.getPixel(x, y);
 
@@ -656,119 +592,37 @@ export class Bitmap implements Drawable {
 		return result;
 	}
 
-	public get width(): u16 {
+	public get width(): i32 {
 		return this._width;
 	}
 
-	public get height(): u16 {
+	public get height(): i32 {
 		return this._height;
-	}
-
-	public get size(): u32 {
-		return this._size;
-	}
-
-	public get paletteSize(): u32 {
-		return this._paletteSize;
 	}
 
 	public get data(): Uint8Array {
 		return this._data;
 	}
 
-	public withinImage(x: i32, y: i32): boolean {
-		return x >= 0 && x < (this._width as i32) && y >= 0 && y < (this._height as i32);
-	}
-
-	public withinPalette(index: i32): boolean {
-		return index >= 0 && (index as u32) < this._paletteSize;
-	}
-
-	public setColor(index: i32, color: Color): boolean {
-		// O índice deve estar entre o tamanho da paleta.
-		// Do contrário, nada será feito.
-		if(!this.withinPalette(index)) {
-			return false;
-		}
-
-		/** *Offset* da paleta. */
-		const offset: i32 = PALETTE_START + (index * 4);
-
-		// Escrever a nova cor...
-		this._data[offset] = color.b;
-		this._data[offset + 1] = color.g;
-		this._data[offset + 2] = color.r;
-		this._data[offset + 3] = color.a;
-
-		return true;
-	}
-
-	public getColor(index: i32): Color {
-		// O índice deve estar entre o tamanho da paleta.
-		// Do contrário, será retornada uma cor padrão.
-		if(!this.withinPalette(index)) {
-			return new Color(0, 0, 0, 0);
-		}
-
-		/** *Offset* da paleta. */
-		const offset: i32 = PALETTE_START + (index * 4);
-
-		return new Color(
-			this._data[offset + 2],
-			this._data[offset + 1],
-			this._data[offset],
-			this._data[offset + 3]
-		);
-	}
-
-	public setPalette(colors: Color[]): boolean {
-		/** Resultado final. */
-		let result: boolean = true;
-
-		for(let index: i32 = 0; index < colors.length; index += 1) {
-			const color: Color = colors[index];
-			const colorResult: boolean = this.setColor(index, color);
-
-			// Sinalizar resultado final, caso necessário...
-			if(!colorResult) {
-				result = false;
-			}
-
-			// Não exceder o tamanho da paleta...
-			if(index as u32 >= this._paletteSize) {
-				break;
-			}
-		}
-
-		return result;
-	}
-
-	public getPalette(): Color[] {
-		/** Resultado. */
-		const result: Color[] = [];
-
-		// Percorrer cores da paleta...
-		for(let index: i32 = 0; index < (this._paletteSize as i32); index += 1) {
-			const color: Color = this.getColor(index);
-			result.push(color);
-		}
-
-		return result;
-	}
-
-	public setPixel(x: i32, y: i32, primaryColor: i32): boolean {
+	public setPixel(x: i32, y: i32, primaryColor: i32): bool {
 		// A posição deve estar na área de desenho e
 		// o índice deve estar entre o tamanho da paleta.
 		// Do contrário, nada será feito.
 		if(!this.withinImage(x, y) || !this.withinPalette(primaryColor)) {
 			return false;
 		}
+		
+		/** Posição X, convertida para número inteiro. */
+		const px: i32 = x < 0? i32(Math.floor(x)): i32(Math.ceil(x));
+
+		/** Posição Y, convertida para número inteiro. */
+		const py: i32 = y < 0? i32(Math.floor(y)): i32(Math.ceil(y));
 
 		/** Posição Y, invertida. */
-		const iy: i32 = (this._height - 1) - y;
+		const iy: i32 = (this._height - 1) - py;
 
 		/** *Offset* do *pixel*. */
-		const offset: i32 = HEADER_SIZE + (this._width * iy) + x;
+		const offset: i32 = BitmapOffset.HEADER_SIZE + (this._width * iy) + px;
 
 		this._data[offset] = primaryColor;
 		return true;
@@ -785,21 +639,164 @@ export class Bitmap implements Drawable {
 		const iy: i32 = (this._height - 1) - y;
 
 		/** *Offset* do *pixel*. */
-		const offset: i32 = HEADER_SIZE + (this._width * iy) + x;
+		const offset: i32 = BitmapOffset.HEADER_SIZE + (this._width * iy) + x;
 
 		return this._data[offset];
 	}
 
+	public clearImage(primaryColor: i32): bool {
+		this.data.fill(primaryColor, BitmapOffset.HEADER_SIZE);
+		return true;
+	}
+
+	/** Tamanho da área da imagem, em *pixels*. */
+	public get size(): i32 {
+		return this._size;
+	}
+
+	/** Número de cores disponíveis na paleta. */
+	public get paletteSize(): i32 {
+		return this._paletteSize;
+	}
+
+	/**
+	 * Indica se uma determinada posição está dentro da área de desenho.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * 
+	 * @returns {bool}
+	 */
+	public withinImage(x: i32, y: i32): bool {
+		return x >= 0 && x < this._width && y >= 0 && y < this._height;
+	}
+
+	/**
+	 * Indica se um determinado índice de cor está dentro da paleta de cores.
+	 * 
+	 * @param index Índice da paleta.
+	 * 
+	 * @returns {bool}
+	 */
+	public withinPalette(index: i32): bool {
+		return index >= 0 && index < this._paletteSize;
+	}
+
+	/**
+	 * Define uma cor da paleta no índice especificado.
+	 * 
+	 * @param index Índice da paleta.
+	 * @param color Cor.
+	 * 
+	 * @returns {bool}
+	 */
+	public setColor(index: i32, color: Color): bool {
+		// O índice deve estar entre o tamanho da paleta.
+		// Do contrário, nada será feito.
+		if(!this.withinPalette(index)) {
+			return false;
+		}
+
+		/** *Offset* da paleta. */
+		const offset: i32 = BitmapOffset.PALETTE_START + (index * 4);
+
+		// Escrever a nova cor...
+		this._data[offset] = color.b;
+		this._data[offset + 1] = color.g;
+		this._data[offset + 2] = color.r;
+		this._data[offset + 3] = color.a;
+
+		return true;
+	}
+
+	/**
+	 * Obtém uma cópia da cor da paleta no índice especificado.
+	 * Retorna uma cor `#000000` quando não existe.
+	 * 
+	 * @param index Índice da paleta.
+	 * 
+	 * @returns {Color}
+	 */
+	public getColor(index: i32): Color {
+		// O índice deve estar entre o tamanho da paleta.
+		// Do contrário, será retornada uma cor padrão.
+		if(!this.withinPalette(index)) {
+			return new Color(0, 0, 0, 0);
+		}
+
+		/** *Offset* da paleta. */
+		const offset: i32 = BitmapOffset.PALETTE_START + (index * 4);
+
+		return new Color(
+			this._data[offset + 2],
+			this._data[offset + 1],
+			this._data[offset],
+			this._data[offset + 3]
+		);
+	}
+
+	/**
+	 * Define uma nova paleta de cores.
+	 * 
+	 * @param colors Cores.
+	 * 
+	 * @returns {bool}
+	 */
+	public setPalette(colors: Color[]): bool {
+		/** Resultado final. */
+		let result: bool = true;
+
+		for(let index: i32 = 0; index < colors.length; index += 1) {
+			const color: Color = colors[index];
+			const colorResult: bool = this.setColor(index, color);
+
+			// Sinalizar resultado final, caso necessário...
+			if(!colorResult) {
+				result = false;
+			}
+
+			// Não exceder o tamanho da paleta...
+			if(index >= this._paletteSize) {
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Obtém uma cópia da paleta de cores.
+	 * 
+	 * @returns {Color[]}
+	 */
+	public getPalette(): Color[] {
+		/** Resultado. */
+		const result: Color[] = [];
+
+		// Percorrer cores da paleta...
+		for(let index: i32 = 0; index < this._paletteSize; index += 1) {
+			const color: Color = this.getColor(index);
+			result.push(color);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Retorna uma cópia da cor da paleta equivalente a um
+	 * *pixel* escolhido na posição especificada.
+	 * Retorna uma cor `#000000` quando não existe.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * 
+	 * @returns {Color}
+	 */
 	public getPixelColor(x: i32, y: i32): Color {
 		const index: i32 = this.getPixel(x, y);
 		const color: Color =  this.getColor(index);
 
 		return color;
-	}
-
-	public clearImage(primaryColor: i32): boolean {
-		this.data.fill(primaryColor, HEADER_SIZE);
-		return true;
 	}
 }
 
@@ -822,11 +819,11 @@ export class Surface<T extends Drawable> {
 	 * 
 	 * @param drawable *Bitmap*.
 	 */
-	constructor(drawable: T) {
+	public constructor(drawable: T) {
 		this._drawable = drawable;
 	}
 
-	get drawable(): T {
+	public get drawable(): T {
 		return this._drawable;
 	}
 
@@ -1003,26 +1000,26 @@ export class Surface<T extends Drawable> {
 		}
 
 		/** Inverter horizontalmente. */
-		const mirrored: boolean = scaleX < 0? true: false;
+		const mirrored: bool = scaleX < 0? true: false;
 
 		/** Inverter verticalmente. */
-		const flipped: boolean = scaleY < 0? true: false;
+		const flipped: bool = scaleY < 0? true: false;
 
 		/** *Offset* horizontal do *pixel*. */
-		const fx: f64 = mirrored?
-			Math.floor(scaleX)
-		: Math.ceil(scaleX);
+		const fx: i32 = mirrored?
+			i32(Math.floor(scaleX))
+		: i32(Math.ceil(scaleX));
 
 		/** *Offset* vertical do *pixel*. */
-		const fy: f64 = flipped?
-			Math.floor(scaleY)
-		: Math.ceil(scaleY);
+		const fy: i32 = i32(flipped?
+			i32(Math.floor(scaleY))
+		: i32(Math.ceil(scaleY)));
 
 		/** Largura do *pixel*. */
-		const pw: i32 = Math.abs(fx) as i32;
+		const pw: i32 = i32(Math.abs(fx));
 
 		/** Altura do *pixel*. */
-		const ph: i32 = Math.abs(fy) as i32;
+		const ph: i32 = i32(Math.abs(fy));
 
 		// Dependendo da escala vertical, a coluna será redesenhada
 		// várias veze sob offsets diferentes...
@@ -1127,7 +1124,7 @@ export class Surface<T extends Drawable> {
 			}
 
 			// Obter posição do caractere na imagem...
-			const charRow: i32 = (charIndex / charColumns) % charColumns;
+			const charRow: i32 = Math.floor(charIndex / charColumns) % charColumns;
 			const charColumn: i32 = charIndex % charColumns;
 
 			// Calcular valores de recorte...
