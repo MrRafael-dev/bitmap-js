@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.9
+ * @version 1.0.10
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -1157,3 +1157,50 @@ export class Surface<T extends Drawable> {
 }
 
 //#endregion </surface.ts>
+//#region <presets.ts>
+/**
+ * @class MaskShader @implements PixelShader
+ * 
+ * @description
+ * *Pixel shader* usado para aplicar máscara de transparência.
+ */
+export class MaskShader implements PixelShader {
+	/** Índice de transparência. */
+	public value: number;
+
+	/**
+	 * @constructor
+	 * 
+	 * @param value Índice de transparência.
+	 */
+	public constructor(value: number = -1) {
+		this.value = value;
+	}
+
+	public pixelShader(_previous: Pixel, next: Pixel): Pixel {
+		// Descartar índice de cor da paleta quando este for igual ao valor 
+		// definido pela máscara...
+		if(next.color === this.value) {
+			next.color = -1;
+		}
+
+		return next;
+	}
+}
+
+/**
+ * Paleta de cores padrão para uso.
+ * 
+ * *2bit demichrome Palette*.
+ * (paleta de 4 cores, formato *RGBA*)
+ * 
+ * *Link:* {@link https://lospec.com/palette-list/2bit-demichrome}
+ */
+export const defaultPalette: Color[] = [
+	new Color(0x21, 0x1e, 0x20, 0xff),
+	new Color(0x55, 0x55, 0x68, 0xff),
+	new Color(0xa0, 0xa0, 0x8b, 0xff),
+	new Color(0xe9, 0xef, 0xec, 0xff),
+];
+
+//#endregion </presets.ts>
