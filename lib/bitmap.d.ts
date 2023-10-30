@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.9
+ * @version 1.0.10
  *
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -37,6 +37,7 @@ export declare class Color {
      */
     static fromHexString(value: string): Color;
     /**
+     * @constructor
      *
      * @param r Canal de cor vermelho (*red*).
      * @param g Canal de cor verde (*green*).
@@ -496,3 +497,29 @@ export declare class Surface<T extends Drawable> {
      */
     text(drawable: Drawable, x: number, y: number, cx: number, cy: number, width: number, height: number, charset: string, charColumns: number, text: string, letterSpacing?: number, lineHeight?: number, scaleX?: number, scaleY?: number, rotation?: number, shaders?: PixelShader[]): this;
 }
+/**
+ * @class MaskShader @implements PixelShader
+ *
+ * @description
+ * *Pixel shader* usado para aplicar máscara de transparência.
+ */
+export declare class MaskShader implements PixelShader {
+    /** Índice de transparência. */
+    value: number;
+    /**
+     * @constructor
+     *
+     * @param value Índice de transparência.
+     */
+    constructor(value?: number);
+    pixelShader(_previous: Pixel, next: Pixel): Pixel;
+}
+/**
+ * Paleta de cores padrão para uso.
+ *
+ * *2bit demichrome Palette*.
+ * (paleta de 4 cores, formato *RGBA*)
+ *
+ * *Link:* {@link https://lospec.com/palette-list/2bit-demichrome}
+ */
+export declare const defaultPalette: Color[];
