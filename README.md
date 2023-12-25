@@ -1,2 +1,2 @@
 # bitmap-js
-Simple bitmap library for JavaScript.
+Simple bitmap library for JavaScript and AssemblyScript.
