@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.10
+ * @version 1.0.11
  * 
  * @description
  * Biblioteca de *bitmap* simples para *AssemblyScript*.
@@ -914,6 +914,81 @@ export class Surface<T extends Drawable> {
 	}
 
 	/**
+	 * Desenha uma linha (algoritmo de *Bresenham*).
+	 * 
+	 * @param x1 Posição X inicial.
+	 * @param y1 Posição Y inicial.
+	 * @param x2 Posição X final.
+	 * @param y2 Posição Y final.
+	 * @param primaryColor Cor da paleta (primária).
+	 * @param shaders *Pixel shaders*.
+	 * 
+	 * @returns {this}
+	 */
+	public line(x1: i32, y1: i32, x2: i32, y2: i32, primaryColor: i32, shaders: PixelShader[] = []): this {
+		let width: i32 = x2 - x1;
+    let height: i32 = y2 - y1;
+		let longest: i32 = i32(Math.abs(width));
+    let shortest: i32 = i32(Math.abs(height));
+    let dx1: i32 = 0;
+		let dy1: i32 = 0;
+		let dx2: i32 = 0;
+		let dy2: i32 = 0;
+
+    if(width < 0) {
+			dx1 = -1;
+			dx2 = -1;
+		}
+		else if(width > 0) {
+			dx1 = 1;
+			dx2 = 1;
+		}
+
+    if(height < 0) {
+			dy1 = -1;
+		}
+		else if(height > 0) {
+			dy1 =  1;
+		}
+
+    if(!(longest > shortest)) {
+      longest = i32(Math.abs(height));
+      shortest = i32(Math.abs(width));
+
+      if(height < 0) {
+				dy2 = -1;
+			}
+			else if(height > 0) {
+				dy2 =  1;
+			}
+
+      dx2 = 0;
+    }
+
+    let numerator: i32 = i32(Math.floor(longest / 2));
+
+		let xi: i32 = x1;
+		let yi: i32 = y1;
+
+    for(let index: i32 = 0; index <= longest; index += 1) {
+      this.pixel(xi, yi, primaryColor, shaders);
+      numerator += shortest;
+
+      if(!(numerator < longest)) {
+        numerator -= longest;
+        xi += dx1;
+        yi += dy1;
+      }
+			else {
+        xi += dx2;
+        yi += dy2;
+      }
+    }
+
+		return this;
+	}
+
+	/**
 	 * Desenha um retângulo (bordas).
 	 * 
 	 * @param x Posição X.
@@ -970,7 +1045,7 @@ export class Surface<T extends Drawable> {
 	 */
 	public rect(x: i32, y: i32, width: i32, height: i32, primaryColor: i32, secondaryColor: i32, shaders: PixelShader[] = []): this {
 		this.rectb(x, y, width, height, primaryColor, shaders);
-		this.rectf(x + 1, y + 1, width - 1, height - 1, secondaryColor, shaders);
+		this.rectf(x + 1, y + 1, width - 2, height - 2, secondaryColor, shaders);
 
 		return this;
 	}
