@@ -1,9 +1,9 @@
 {
   "type": "module",
   "name": "bitmap-js",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Simple bitmap library for JavaScript.",
-  "main": "index.js",
+  "main": "./lib/bitmap.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc --build src/tsconfig.json"

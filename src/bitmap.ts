@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.10
+ * @version 1.0.11
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -914,6 +914,81 @@ export class Surface<T extends Drawable> {
 	}
 
 	/**
+	 * Desenha uma linha (algoritmo de *Bresenham*).
+	 * 
+	 * @param x1 Posição X inicial.
+	 * @param y1 Posição Y inicial.
+	 * @param x2 Posição X final.
+	 * @param y2 Posição Y final.
+	 * @param primaryColor Cor da paleta (primária).
+	 * @param shaders *Pixel shaders*.
+	 * 
+	 * @returns {this}
+	 */
+	public line(x1: number, y1: number, x2: number, y2: number, primaryColor: number, shaders: PixelShader[] = []): this {
+		let width: number = x2 - x1;
+    let height: number = y2 - y1;
+		let longest: number = Math.abs(width);
+    let shortest: number = Math.abs(height);
+    let dx1: number = 0;
+		let dy1: number = 0;
+		let dx2: number = 0;
+		let dy2: number = 0;
+
+    if(width < 0) {
+			dx1 = -1;
+			dx2 = -1;
+		}
+		else if(width > 0) {
+			dx1 = 1;
+			dx2 = 1;
+		}
+
+    if(height < 0) {
+			dy1 = -1;
+		}
+		else if(height > 0) {
+			dy1 =  1;
+		}
+
+    if(!(longest > shortest)) {
+      longest = Math.abs(height);
+      shortest = Math.abs(width);
+
+      if(height < 0) {
+				dy2 = -1;
+			}
+			else if(height > 0) {
+				dy2 =  1;
+			}
+
+      dx2 = 0;
+    }
+
+    let numerator: number = Math.floor(longest / 2);
+
+		let xi: number = x1;
+		let yi: number = y1;
+
+    for(let index: number = 0; index <= longest; index += 1) {
+      this.pixel(xi, yi, primaryColor, shaders);
+      numerator += shortest;
+
+      if(!(numerator < longest)) {
+        numerator -= longest;
+        xi += dx1;
+        yi += dy1;
+      }
+			else {
+        xi += dx2;
+        yi += dy2;
+      }
+    }
+
+		return this;
+	}
+
+	/**
 	 * Desenha um retângulo (bordas).
 	 * 
 	 * @param x Posição X.
@@ -970,7 +1045,7 @@ export class Surface<T extends Drawable> {
 	 */
 	public rect(x: number, y: number, width: number, height: number, primaryColor: number, secondaryColor: number, shaders: PixelShader[] = []): this {
 		this.rectb(x, y, width, height, primaryColor, shaders);
-		this.rectf(x + 1, y + 1, width - 1, height - 1, secondaryColor, shaders);
+		this.rectf(x + 1, y + 1, width - 2, height - 2, secondaryColor, shaders);
 
 		return this;
 	}
