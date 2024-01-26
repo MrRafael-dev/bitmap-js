@@ -2,7 +2,7 @@
  * @name bitmap-js
  * @author MrRafael-dev
  * @license MIT
- * @version 1.0.11
+ * @version 1.0.13
  * 
  * @description
  * Biblioteca de *bitmap* simples para *JavaScript*.
@@ -14,6 +14,255 @@
  * de 256 cores (formato *8bpp*) são suportados.
  */
 
+//#region <util.ts>
+/**
+ * Funções utilitárias.
+ */
+export namespace util {
+	/**
+	 * Separa um *byte*. em uma *array* de *bits*.
+	 * 
+	 * @param value *Byte*.
+	 * @returns Uma *array* com exatamente 8 valores.
+	 */
+	export function splitBits(value: number): Array<number> {
+		/** Resultado a ser retornado. */
+		const result: Array<number> = new Array<number>(8);
+
+		for(let i: number = 0; i < 8; i += 1) {
+			result[i] = (value >> (7 - i)) & 1;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Junta uma *array* de *bits* de volta para um *byte*.
+	 * 
+	 * @param array *Array* de *bits* com exatamente 8 valores.
+	 * @returns 
+	 */
+	export function joinBits(array: Array<number>): number {
+		/** Resultado a ser retornado. */
+		let result: number = array[7];
+		/** Potência. */
+		let pow: number = 128;
+
+		for(let i: number = 0; i < 7; i += 1) {
+			result += array[i] * pow;
+			pow /= 2;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Separa um *byte* em uma *array* de *half nibbles*.
+	 * 
+	 * @param value *Byte*.
+	 * @returns Uma *array* com exatamente 4 valores.
+	 */
+	export function splitHalfNibbles(value: number): Array<number> {
+		/** Resultado a ser retornado. */
+		const result: Array<number> = new Array<number>(4);
+		/** Potência. */
+		let pow: number = 192;
+		/** *Shift register*. */
+		let shift: number = 6;
+
+		for(let i: number = 0; i < 4; i += 1) {
+			result[i] = (value & pow) >> shift;
+			pow /= 4;
+			shift -= 2;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Junta uma *array* de *half nibbles* de volta para um *byte*.
+	 * 
+	 * @param array *Array* de *half nibbles* com exatamente 4 valores.
+	 * @returns 
+	 */
+	export function joinHalfNibbles(array: Array<number>): number {
+		/** *High byte*. */
+		const hi: number = (array[0] * 4) + (array[1]);
+		/** *Low byte*. */
+		const lo: number = (array[2] * 4) + (array[3]);
+
+		return (hi * 16) + lo;
+	}
+
+	/**
+	 * Separa um *byte* em uma *array* de *nibbles*.
+	 * 
+	 * @param value *Byte*.
+	 * @returns Uma *array* com exatamente 2 valores.
+	 */
+	export function splitNibbles(value: number): Array<number> {
+		/** Resultado a ser retornado. */
+		const result: Array<number> = [
+			(value >> 4),
+			(value & 15),
+		];
+
+		return result;
+	}
+
+	/**
+	 * Junta uma *array* de *nibbles* de volta para um *byte*.
+	 * 
+	 * @param array *Array* de *nibbles* com exatamente 2 valores.
+	 * @returns 
+	 */
+	export function joinNibbles(array: Array<number>): number {
+		return (array[0] * 16) + array[1];
+	}
+}
+
+//#endregion <util.ts>
+//#region <grid.ts>
+/**
+ * Estrutura representativa de uma grade de dados.
+ * É equivalente a uma *array* 2D.
+ */
+export interface Grid {
+	/** Dados da grade. */
+	data: Uint8Array;
+
+	/** Largura da grade. */
+	width: number;
+
+	/** Altura da grade. */
+	height: number;
+	
+	/**
+	 * Obtém o valor de uma posição.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @returns 
+	 */
+	getAt(x: number, y: number): number;
+
+	/**
+	 * Define ou modifica um valor em uma posição.
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @param value Valor.
+	 * @returns 
+	 */
+	setAt(x: number, y: number, value: number): boolean;
+}
+
+/** Formatos de grade suportados pelo {@link DataGrid}. */
+export enum GridFormat {
+	Bits = 8,
+	HalfNibbles = 4,
+	Nibbles = 2,
+}
+
+/**
+ * Representa uma grade de dados padrão.
+ */
+export class DataGrid implements Grid {
+	/** Dados da grade. */
+	public data: Uint8Array;
+
+	/** Largura da grade. */
+	public width: number;
+
+	/** Altura da grade. */
+	public height: number;
+
+	/** Formato dos dados. */
+	public format: GridFormat;
+
+	/**
+	 * 
+	 * @param data Dados da grade.
+	 * @param width Largura da grade.
+	 * @param height Altura da grade.
+	 * @param format Formato dos dados.
+	 */
+	public constructor(data: Uint8Array, width: number, height: number, format: GridFormat) {
+		this.data = data;
+		this.width = width;
+		this.height = height;
+		this.format = format;
+	}
+
+	/**
+	 * Retorna se uma determinada posição está dentro dos limites desta grade.
+	 * 
+	 * @param x Posição X.
+	 * @param y Posição Y.
+	 * @returns 
+	 */
+	public within(x: number, y: number): boolean {
+		return (x >= 0 && x < this.width) && (y >= 0 && y < this.height);
+	}
+
+	public getAt(x: number, y: number): number {
+		// Encerrar operação quando a posição não estiver dentro da área...
+		if(!this.within(x, y)) {
+			return 0;
+		}
+
+		/** *Offset* da posição a ser retornada. */
+    const offset: number = ((y * Math.floor(this.width / this.format)) + Math.floor(x / this.format));
+		/** Índice do *bit*, *half nibble* ou *nibble* a ser retornado. */
+    const index: number = x % this.format;
+		/** Conteúdo da posição especificada. */
+    const content: number = this.data[offset];
+
+		if(this.format === GridFormat.HalfNibbles) {
+			return util.splitHalfNibbles(content)[index];
+		}
+		else if(this.format === GridFormat.Nibbles) {
+			return util.splitNibbles(content)[index];
+		}
+		
+    return util.splitBits(content)[index];
+	}
+
+	public setAt(x: number, y: number, value: number): boolean {
+		// Encerrar operação quando a posição não estiver dentro da área...
+		if(!this.within(x, y)) {
+			return false;
+		}
+
+		/** *Offset* da posição a ser modificada. */
+    const offset: number = ((y * Math.floor(this.width / this.format)) + Math.floor(x / this.format));
+		/** Índice do *bit*, *half nibble* ou *nibble* a ser modificado. */
+    const index: number = Math.abs(x % this.format);
+		/** Conteúdo da posição especificada. */
+    let content: number = this.data[offset];
+
+		if(this.format === GridFormat.Bits) {
+    	const chunk: Array<number> = util.splitBits(content);
+			chunk[index] = value % 2;
+    	content = util.joinBits(chunk);
+		}
+
+		else if(this.format === GridFormat.HalfNibbles) {
+			const chunk: Array<number> = util.splitHalfNibbles(content);
+			chunk[3 - index] = value % 4;
+			content = util.joinHalfNibbles(chunk);
+		}
+		else if(this.format === GridFormat.Nibbles) {
+			const chunk: Array<number> = util.splitNibbles(content);
+			chunk[1 - index] = value % 16;
+			content = util.joinNibbles(chunk);
+		}
+
+		this.data[offset] = content;
+    return true;
+	}
+}
+
+//#endregion </grid.ts>
 //#region <color.ts>
 /**
  * @class Color
@@ -333,18 +582,38 @@ export interface Drawable {
 	 * @returns {number}
 	 */
 	getPixel(x: number, y: number): number;
-
-	/**
-	 * Limpa todo o conteúdo da imagem.
-	 * 
-	 * @param primaryColor Cor da paleta (primária).
-	 * 
-	 * @returns {boolean}
-	 */
-	clearImage(primaryColor: number): boolean;
 }
 
 //#endregion </drawable.ts>
+//#region <pixel_grid.ts>
+/**
+ * @class PixelGrid @extends DataGrid @implements Drawable
+ * 
+ * @description
+ * Representa uma grade de *pixels*.
+ */
+export class PixelGrid extends DataGrid implements Drawable {
+	/**
+	 * @constructor
+	 * 
+	 * @param width Largura da grade.
+	 * @param height Altura da grade.
+	 * @param format Formato dos dados.
+	 */
+	public constructor(width: number, height: number, format: GridFormat) {
+		super(new Uint8Array((width * height) / format), width, height, format);
+	}
+
+	public setPixel(x: number, y: number, primaryColor: number): boolean {
+		return this.setAt(x, y, primaryColor);
+	}
+	
+	public getPixel(x: number, y: number): number {
+		return this.getAt(x, y);
+	}
+}
+
+//#endregion </pixel_grid.ts>
 //#region <bitmap.ts>
 /**
  * @enum BitmapOffset
@@ -644,6 +913,13 @@ export class Bitmap implements Drawable {
 		return this._data[offset];
 	}
 
+	/**
+	 * Limpa todo o conteúdo da imagem.
+	 * 
+	 * @param primaryColor Cor da paleta (primária).
+	 * 
+	 * @returns {boolean}
+	 */
 	public clearImage(primaryColor: number): boolean {
 		this.data.fill(primaryColor, BitmapOffset.HEADER_SIZE);
 		return true;
@@ -865,11 +1141,17 @@ export class Surface<T extends Drawable> {
 	 * Limpa todo o conteúdo da imagem.
 	 * 
 	 * @param primaryColor Cor da paleta (primária).
+	 * @param shaders *Pixel shaders*.
 	 * 
 	 * @returns {this}
 	 */
-	public clear(primaryColor: number): this {
-		this._drawable.clearImage(primaryColor);
+	public clear(primaryColor: number, shaders: PixelShader[] = []): this {
+		for(let y: number = 0; y < this._drawable.height; y += 1) {
+			for(let x: number = 0; x < this._drawable.width; x += 1) {
+				this.pixel(x, y, primaryColor, shaders);
+			}
+		}
+
 		return this;
 	}
 
